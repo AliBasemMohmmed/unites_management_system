@@ -1,0 +1,84 @@
+.context-menu {
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  display: none;
+  z-index: 1000;
+  min-width: 180px;
+  padding: 5px 0;
+}
+
+.context-menu-item {
+  padding: 8px 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.context-menu-item:hover {
+  background-color: #f8f9fa;
+}
+
+.context-menu-item.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  color: #6c757d;
+}
+
+.context-menu-item.disabled:hover {
+  background-color: transparent;
+}
+
+.context-menu-item i {
+  margin-left: 8px;
+  width: 16px;
+  text-align: center;
+}
+
+.table tr.selected {
+  background-color: #f8f9fa;
+}
+
+.actions-cell {
+  cursor: pointer;
+}
+
+.actions-cell:hover {
+  background-color: #f8f9fa;
+}
+
+/* تحسينات للرسائل المنبثقة */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1100;
+}
+
+/* تحسينات للنوافذ المنبثقة */
+.modal-header {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer {
+  border-top: 1px solid #dee2e6;
+}
+
+.receiver-group {
+  margin-bottom: 15px;
+}
+
+.receiver-group h6 {
+  margin-bottom: 10px;
+  color: #495057;
+}
+
+.form-check {
+  margin-right: 20px;
+  margin-bottom: 5px;
+}
+

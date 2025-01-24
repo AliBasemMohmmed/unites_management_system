@@ -1,0 +1,1332 @@
+{
+    "activity_log": {
+        "structure": "CREATE TABLE `activity_log` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `user_id` int(11) DEFAULT NULL,\n  `action` varchar(50) NOT NULL,\n  `entity_type` varchar(50) NOT NULL,\n  `details` text DEFAULT NULL,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  PRIMARY KEY (`id`),\n  KEY `user_id` (`user_id`),\n  CONSTRAINT `activity_log_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL\n) ENGINE=InnoDB AUTO_INCREMENT=92 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": [
+            {
+                "id": 1,
+                "user_id": 3,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:16:49"
+            },
+            {
+                "id": 2,
+                "user_id": 5,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:18:12"
+            },
+            {
+                "id": 3,
+                "user_id": 5,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:20:36"
+            },
+            {
+                "id": 4,
+                "user_id": 7,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:20:57"
+            },
+            {
+                "id": 5,
+                "user_id": 7,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:26:37"
+            },
+            {
+                "id": 6,
+                "user_id": 5,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:26:43"
+            },
+            {
+                "id": 7,
+                "user_id": 5,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:27:03"
+            },
+            {
+                "id": 8,
+                "user_id": 3,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:27:06"
+            },
+            {
+                "id": 9,
+                "user_id": 3,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:34:22"
+            },
+            {
+                "id": 10,
+                "user_id": 7,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:34:26"
+            },
+            {
+                "id": 11,
+                "user_id": 7,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:36:16"
+            },
+            {
+                "id": 12,
+                "user_id": 7,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:36:18"
+            },
+            {
+                "id": 13,
+                "user_id": 7,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:36:26"
+            },
+            {
+                "id": 14,
+                "user_id": 5,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:36:29"
+            },
+            {
+                "id": 15,
+                "user_id": 5,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:36:50"
+            },
+            {
+                "id": 16,
+                "user_id": 3,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:36:53"
+            },
+            {
+                "id": 17,
+                "user_id": 3,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:37:04"
+            },
+            {
+                "id": 18,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:37:12"
+            },
+            {
+                "id": 19,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:45:17"
+            },
+            {
+                "id": 20,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 19:45:20"
+            },
+            {
+                "id": 21,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 22:44:02"
+            },
+            {
+                "id": 22,
+                "user_id": 7,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 22:44:08"
+            },
+            {
+                "id": 23,
+                "user_id": 7,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 22:45:52"
+            },
+            {
+                "id": 24,
+                "user_id": 7,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 22:45:56"
+            },
+            {
+                "id": 25,
+                "user_id": 7,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 22:46:15"
+            },
+            {
+                "id": 26,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 22:46:19"
+            },
+            {
+                "id": 27,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 22:47:07"
+            },
+            {
+                "id": 28,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 22:51:03"
+            },
+            {
+                "id": 29,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 22:51:52"
+            },
+            {
+                "id": 30,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 22:59:47"
+            },
+            {
+                "id": 31,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 22:59:54"
+            },
+            {
+                "id": 32,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:14:19"
+            },
+            {
+                "id": 33,
+                "user_id": 5,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:14:25"
+            },
+            {
+                "id": 34,
+                "user_id": 5,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:14:58"
+            },
+            {
+                "id": 35,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:15:01"
+            },
+            {
+                "id": 36,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:24:33"
+            },
+            {
+                "id": 37,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:24:40"
+            },
+            {
+                "id": 38,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:27:09"
+            },
+            {
+                "id": 39,
+                "user_id": 3,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:27:14"
+            },
+            {
+                "id": 40,
+                "user_id": 3,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:27:23"
+            },
+            {
+                "id": 41,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:27:27"
+            },
+            {
+                "id": 42,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:27:44"
+            },
+            {
+                "id": 43,
+                "user_id": 3,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:27:46"
+            },
+            {
+                "id": 44,
+                "user_id": 3,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:28:07"
+            },
+            {
+                "id": 45,
+                "user_id": 3,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:28:10"
+            },
+            {
+                "id": 46,
+                "user_id": 3,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:28:13"
+            },
+            {
+                "id": 47,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:28:15"
+            },
+            {
+                "id": 48,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:28:49"
+            },
+            {
+                "id": 49,
+                "user_id": 3,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:28:51"
+            },
+            {
+                "id": 50,
+                "user_id": 3,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:28:58"
+            },
+            {
+                "id": 51,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:29:02"
+            },
+            {
+                "id": 52,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:31:36"
+            },
+            {
+                "id": 53,
+                "user_id": 5,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:31:38"
+            },
+            {
+                "id": 54,
+                "user_id": 5,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:32:25"
+            },
+            {
+                "id": 55,
+                "user_id": 5,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:32:40"
+            },
+            {
+                "id": 56,
+                "user_id": 5,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:37:15"
+            },
+            {
+                "id": 57,
+                "user_id": 5,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:37:21"
+            },
+            {
+                "id": 58,
+                "user_id": 5,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:37:25"
+            },
+            {
+                "id": 59,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:37:28"
+            },
+            {
+                "id": 60,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:38:21"
+            },
+            {
+                "id": 61,
+                "user_id": 5,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:38:23"
+            },
+            {
+                "id": 62,
+                "user_id": 5,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:39:10"
+            },
+            {
+                "id": 63,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:39:12"
+            },
+            {
+                "id": 64,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:39:48"
+            },
+            {
+                "id": 65,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:45:17"
+            },
+            {
+                "id": 66,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:52:56"
+            },
+            {
+                "id": 67,
+                "user_id": 5,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:52:59"
+            },
+            {
+                "id": 68,
+                "user_id": 5,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:56:50"
+            },
+            {
+                "id": 69,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-16 23:56:53"
+            },
+            {
+                "id": 70,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:02:27"
+            },
+            {
+                "id": 71,
+                "user_id": 5,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:02:29"
+            },
+            {
+                "id": 72,
+                "user_id": 5,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:06:10"
+            },
+            {
+                "id": 73,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:06:12"
+            },
+            {
+                "id": 74,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:07:50"
+            },
+            {
+                "id": 75,
+                "user_id": 5,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:07:53"
+            },
+            {
+                "id": 76,
+                "user_id": 5,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:13:15"
+            },
+            {
+                "id": 77,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:13:17"
+            },
+            {
+                "id": 78,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:14:19"
+            },
+            {
+                "id": 79,
+                "user_id": 5,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:14:37"
+            },
+            {
+                "id": 80,
+                "user_id": 5,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:14:47"
+            },
+            {
+                "id": 81,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:14:50"
+            },
+            {
+                "id": 82,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:15:32"
+            },
+            {
+                "id": 83,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:15:35"
+            },
+            {
+                "id": 84,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:15:47"
+            },
+            {
+                "id": 85,
+                "user_id": 5,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:15:51"
+            },
+            {
+                "id": 86,
+                "user_id": 5,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:19:17"
+            },
+            {
+                "id": 87,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 00:19:20"
+            },
+            {
+                "id": 88,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 10:18:38"
+            },
+            {
+                "id": 89,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 10:18:40"
+            },
+            {
+                "id": 90,
+                "user_id": 2,
+                "action": "logout",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 10:38:06"
+            },
+            {
+                "id": 91,
+                "user_id": 2,
+                "action": "login",
+                "entity_type": "user",
+                "details": "{\"ip\":\"::1\",\"user_agent\":\"Mozilla\\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\\/537.36 (KHTML, like Gecko) Chrome\\\/131.0.0.0 Safari\\\/537.36 Edg\\\/131.0.0.0\"}",
+                "created_at": "2025-01-17 10:38:08"
+            }
+        ]
+    },
+    "colleges": {
+        "structure": "CREATE TABLE `colleges` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `name` varchar(255) NOT NULL,\n  `university_id` int(11) DEFAULT NULL,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),\n  `updated_by` int(11) DEFAULT NULL,\n  `created_by` int(11) DEFAULT NULL,\n  PRIMARY KEY (`id`),\n  KEY `university_id` (`university_id`),\n  CONSTRAINT `colleges_ibfk_1` FOREIGN KEY (`university_id`) REFERENCES `universities` (`id`)\n) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": [
+            {
+                "id": 1,
+                "name": "\u0643\u0644\u064a\u0629 \u0627\u0644\u0647\u0646\u062f\u0633\u0629",
+                "university_id": 1,
+                "created_at": "2025-01-16 18:29:02",
+                "updated_at": null,
+                "updated_by": null,
+                "created_by": null
+            },
+            {
+                "id": 12,
+                "name": "\u0639\u0644\u0648\u0645 \u0627\u0644\u062d\u0627\u0633\u0628\u0627\u062a \u0648\u062a\u0643\u0646\u0648\u0644\u0648\u062c\u0628\u0627 \u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062a",
+                "university_id": 12,
+                "created_at": "2025-01-17 00:12:24",
+                "updated_at": "2025-01-17 00:12:49",
+                "updated_by": null,
+                "created_by": 5
+            }
+        ]
+    },
+    "document_comments": {
+        "structure": "CREATE TABLE `document_comments` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `document_id` int(11) NOT NULL,\n  `user_id` int(11) NOT NULL,\n  `content` text NOT NULL,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  PRIMARY KEY (`id`),\n  KEY `document_id` (`document_id`),\n  KEY `user_id` (`user_id`),\n  CONSTRAINT `document_comments_ibfk_1` FOREIGN KEY (`document_id`) REFERENCES `documents` (`id`),\n  CONSTRAINT `document_comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": []
+    },
+    "document_copies": {
+        "structure": "CREATE TABLE `document_copies` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `original_id` int(11) NOT NULL,\n  `receiver_type` enum('ministry','division','unit') NOT NULL,\n  `receiver_id` int(11) NOT NULL,\n  `title` varchar(255) NOT NULL,\n  `content` text DEFAULT NULL,\n  `file_path` varchar(255) DEFAULT NULL,\n  `status` enum('pending','received','processed','rejected') DEFAULT 'pending',\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  `received_at` timestamp NULL DEFAULT NULL,\n  `processed_at` timestamp NULL DEFAULT NULL,\n  `send_notes` text DEFAULT NULL,\n  `process_notes` text DEFAULT NULL,\n  PRIMARY KEY (`id`),\n  KEY `idx_document_copies_original` (`original_id`),\n  KEY `idx_document_copies_receiver` (`receiver_type`,`receiver_id`),\n  KEY `idx_document_copies_status` (`status`),\n  CONSTRAINT `document_copies_ibfk_1` FOREIGN KEY (`original_id`) REFERENCES `documents` (`id`) ON DELETE CASCADE\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": []
+    },
+    "document_history": {
+        "structure": "CREATE TABLE `document_history` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `document_id` int(11) NOT NULL,\n  `user_id` int(11) NOT NULL,\n  `action` varchar(50) NOT NULL,\n  `notes` text DEFAULT NULL,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  PRIMARY KEY (`id`),\n  KEY `user_id` (`user_id`),\n  KEY `idx_document_history` (`document_id`),\n  CONSTRAINT `document_history_ibfk_1` FOREIGN KEY (`document_id`) REFERENCES `documents` (`id`) ON DELETE CASCADE,\n  CONSTRAINT `document_history_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE\n) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": [
+            {
+                "id": 1,
+                "document_id": 3,
+                "user_id": 2,
+                "action": "create",
+                "notes": "\u062a\u0645 \u0625\u0646\u0634\u0627\u0621 \u0627\u0644\u0643\u062a\u0627\u0628",
+                "created_at": "2025-01-16 22:25:51"
+            },
+            {
+                "id": 2,
+                "document_id": 4,
+                "user_id": 2,
+                "action": "create",
+                "notes": "\u062a\u0645 \u0625\u0646\u0634\u0627\u0621 \u0627\u0644\u0643\u062a\u0627\u0628",
+                "created_at": "2025-01-16 22:27:57"
+            },
+            {
+                "id": 3,
+                "document_id": 5,
+                "user_id": 2,
+                "action": "create",
+                "notes": "\u062a\u0645 \u0625\u0646\u0634\u0627\u0621 \u0627\u0644\u0643\u062a\u0627\u0628",
+                "created_at": "2025-01-16 22:30:30"
+            },
+            {
+                "id": 4,
+                "document_id": 6,
+                "user_id": 2,
+                "action": "create",
+                "notes": "\u062a\u0645 \u0625\u0646\u0634\u0627\u0621 \u0627\u0644\u0643\u062a\u0627\u0628",
+                "created_at": "2025-01-16 22:31:42"
+            },
+            {
+                "id": 5,
+                "document_id": 6,
+                "user_id": 2,
+                "action": "send",
+                "notes": " \u0631\u0644\u0627 \u0644\u0627\u0631 \u0631\u0644\u0627 \u0631\u0644\u0627 ",
+                "created_at": "2025-01-16 22:33:00"
+            },
+            {
+                "id": 6,
+                "document_id": 7,
+                "user_id": 2,
+                "action": "create",
+                "notes": "\u062a\u0645 \u0625\u0646\u0634\u0627\u0621 \u0627\u0644\u0643\u062a\u0627\u0628",
+                "created_at": "2025-01-16 22:36:59"
+            },
+            {
+                "id": 7,
+                "document_id": 7,
+                "user_id": 2,
+                "action": "send",
+                "notes": "\u0633\u0624\u0633\u0633\u0633",
+                "created_at": "2025-01-16 22:37:09"
+            }
+        ]
+    },
+    "documents": {
+        "structure": "CREATE TABLE `documents` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `title` varchar(255) NOT NULL,\n  `content` text DEFAULT NULL,\n  `file_path` varchar(255) DEFAULT NULL,\n  `sender_type` enum('ministry','division','unit') NOT NULL,\n  `sender_id` int(11) NOT NULL,\n  `receiver_type` enum('ministry','division','unit') NOT NULL,\n  `receiver_id` int(11) NOT NULL,\n  `status` enum('pending','received','processed') DEFAULT 'pending',\n  `is_broadcast` tinyint(1) DEFAULT 0,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  `created_by` int(11) DEFAULT NULL,\n  `send_date` timestamp NULL DEFAULT NULL,\n  `send_notes` text DEFAULT NULL,\n  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),\n  `processor_id` int(11) DEFAULT NULL,\n  PRIMARY KEY (`id`),\n  KEY `processor_id` (`processor_id`),\n  CONSTRAINT `documents_ibfk_1` FOREIGN KEY (`processor_id`) REFERENCES `users` (`id`)\n) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": [
+            {
+                "id": 1,
+                "title": "aaaa",
+                "content": "dfcghj hgjkml, ghjkl gh jhkjlk",
+                "file_path": "sssssss",
+                "sender_type": "ministry",
+                "sender_id": 3,
+                "receiver_type": "division",
+                "receiver_id": 2,
+                "status": "processed",
+                "is_broadcast": 0,
+                "created_at": "2025-01-16 19:25:08",
+                "created_by": null,
+                "send_date": null,
+                "send_notes": null,
+                "updated_at": "2025-01-16 19:49:51",
+                "processor_id": null
+            },
+            {
+                "id": 3,
+                "title": "\u0643\u062a\u0627\u0628",
+                "content": "\u0646\u0638\u0627\u0645 \u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u062a\u0639\u0644\u064a\u0645 \u0627\u0644\u0639\u0627\u0644\u064a\r\n\u0627\u0644\u0623\u0642\u0633\u0627\u0645\r\n\u0627\u0644\u062c\u0627\u0645\u0639\u0627\u062a\r\n\u0627\u0644\u0634\u0639\u0628\r\n\u0627\u0644\u0648\u062d\u062f\u0627\u062a\r\n\u0627\u0644\u0643\u062a\u0628 \u0648\u0627\u0644\u0645\u0631\u0627\u0633\u0644\u0627\u062a\r\n\u0627\u0644\u062a\u0642\u0627\u0631\u064a\u0631\r\n \u0645\u062f\u064a\u0631 \u0627\u0644\u0646\u0638\u0627\u0645 \r\n",
+                "file_path": "uploads\/67895d3f3c80d_A1.jpg",
+                "sender_type": "unit",
+                "sender_id": 2,
+                "receiver_type": "ministry",
+                "receiver_id": 0,
+                "status": "",
+                "is_broadcast": 0,
+                "created_at": "2025-01-16 22:25:51",
+                "created_by": null,
+                "send_date": null,
+                "send_notes": null,
+                "updated_at": "2025-01-16 22:25:51",
+                "processor_id": null
+            },
+            {
+                "id": 4,
+                "title": "\u0643\u062a\u0627\u0628",
+                "content": "\u0646\u0638\u0627\u0645 \u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u062a\u0639\u0644\u064a\u0645 \u0627\u0644\u0639\u0627\u0644\u064a\r\n\u0627\u0644\u0623\u0642\u0633\u0627\u0645\r\n\u0627\u0644\u062c\u0627\u0645\u0639\u0627\u062a\r\n\u0627\u0644\u0634\u0639\u0628\r\n\u0627\u0644\u0648\u062d\u062f\u0627\u062a\r\n\u0627\u0644\u0643\u062a\u0628 \u0648\u0627\u0644\u0645\u0631\u0627\u0633\u0644\u0627\u062a\r\n\u0627\u0644\u062a\u0642\u0627\u0631\u064a\u0631\r\n \u0645\u062f\u064a\u0631 \u0627\u0644\u0646\u0638\u0627\u0645 \r\n",
+                "file_path": "uploads\/67895dbd203e0_A1.jpg",
+                "sender_type": "unit",
+                "sender_id": 2,
+                "receiver_type": "ministry",
+                "receiver_id": 0,
+                "status": "",
+                "is_broadcast": 0,
+                "created_at": "2025-01-16 22:27:57",
+                "created_by": null,
+                "send_date": null,
+                "send_notes": null,
+                "updated_at": "2025-01-16 22:27:57",
+                "processor_id": null
+            },
+            {
+                "id": 5,
+                "title": "\u0628\u0628",
+                "content": "\u0628\u0628\u0628",
+                "file_path": "uploads\/67895e56d180e_11782-9.jpg",
+                "sender_type": "unit",
+                "sender_id": 2,
+                "receiver_type": "ministry",
+                "receiver_id": 0,
+                "status": "",
+                "is_broadcast": 0,
+                "created_at": "2025-01-16 22:30:30",
+                "created_by": null,
+                "send_date": null,
+                "send_notes": null,
+                "updated_at": "2025-01-16 22:30:30",
+                "processor_id": null
+            },
+            {
+                "id": 6,
+                "title": "\u0644",
+                "content": "\u0644",
+                "file_path": "uploads\/67895e9e314bc_5eScUcQpQNS1BxYqhI4c_Prediction.png",
+                "sender_type": "unit",
+                "sender_id": 2,
+                "receiver_type": "unit",
+                "receiver_id": 1,
+                "status": "",
+                "is_broadcast": 0,
+                "created_at": "2025-01-16 22:31:42",
+                "created_by": null,
+                "send_date": "2025-01-16 22:33:00",
+                "send_notes": " \u0631\u0644\u0627 \u0644\u0627\u0631 \u0631\u0644\u0627 \u0631\u0644\u0627 ",
+                "updated_at": "2025-01-16 22:33:00",
+                "processor_id": null
+            },
+            {
+                "id": 7,
+                "title": "\u064a\u064a\u064a",
+                "content": "\u064a\u064a\u064a\u064a",
+                "file_path": "uploads\/67895fdb2c8fd__sweet-sang-chay-1-20240220081515-xu6pr.png",
+                "sender_type": "unit",
+                "sender_id": 2,
+                "receiver_type": "division",
+                "receiver_id": 1,
+                "status": "",
+                "is_broadcast": 0,
+                "created_at": "2025-01-16 22:36:59",
+                "created_by": 2,
+                "send_date": "2025-01-16 22:37:09",
+                "send_notes": "\u0633\u0624\u0633\u0633\u0633",
+                "updated_at": "2025-01-16 22:37:09",
+                "processor_id": null
+            }
+        ]
+    },
+    "ministry_departments": {
+        "structure": "CREATE TABLE `ministry_departments` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `name` varchar(255) NOT NULL,\n  `description` text DEFAULT NULL,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  PRIMARY KEY (`id`)\n) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": [
+            {
+                "id": 1,
+                "name": "\u0642\u0633\u0645 \u0634\u0624\u0648\u0646 \u0627\u0644\u0645\u0631\u0627\u0629",
+                "description": "\u0642\u0633\u0645 \u0634\u0624\u0648\u0646 \u0627\u0644\u0645\u0631\u0627\u0629  \u0641\u064a \u0648\u0632\u0631\u0627\u0629 \u0627\u0644\u062a\u0639\u0644\u064a\u0645 \u0627\u0644\u0639\u0627\u0644\u064a \u0648 \u0627\u0644\u0628\u062d\u062b \u0627\u0644\u0639\u0644\u0645\u064a ",
+                "created_at": "2025-01-16 18:29:02"
+            }
+        ]
+    },
+    "notifications": {
+        "structure": "CREATE TABLE `notifications` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `user_id` int(11) DEFAULT NULL,\n  `title` varchar(255) NOT NULL,\n  `message` text NOT NULL,\n  `type` varchar(50) DEFAULT 'info',\n  `is_read` tinyint(1) DEFAULT 0,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  PRIMARY KEY (`id`),\n  KEY `user_id` (`user_id`),\n  CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE\n) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": [
+            {
+                "id": 1,
+                "user_id": 2,
+                "title": "HHHHH",
+                "message": "CREATE TABLE notifications (\r\n    id INT PRIMARY KEY AUTO_INCREMENT,\r\n    user_id INT,\r\n    title VARCHAR(255) NOT NULL,\r\n    message TEXT NOT NULL,\r\n    type VARCHAR(50) DEFAULT 'info',\r\n    is_read BOOLEAN DEFAULT FALSE,\r\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\r\n    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE\r\n);",
+                "type": "info",
+                "is_read": 1,
+                "created_at": "2025-01-16 20:08:21"
+            },
+            {
+                "id": 2,
+                "user_id": 2,
+                "title": "ddsfdsf",
+                "message": "sdfsdfsfdsf",
+                "type": "info",
+                "is_read": 1,
+                "created_at": "2025-01-17 10:13:31"
+            }
+        ]
+    },
+    "permissions": {
+        "structure": "CREATE TABLE `permissions` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `user_id` int(11) NOT NULL,\n  `permission_name` varchar(50) NOT NULL,\n  PRIMARY KEY (`id`),\n  KEY `user_id` (`user_id`),\n  CONSTRAINT `permissions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)\n) ENGINE=InnoDB AUTO_INCREMENT=106 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": [
+            {
+                "id": 1,
+                "user_id": 2,
+                "permission_name": "view_documents"
+            },
+            {
+                "id": 3,
+                "user_id": 4,
+                "permission_name": "view_documents"
+            },
+            {
+                "id": 5,
+                "user_id": 6,
+                "permission_name": "view_documents"
+            },
+            {
+                "id": 6,
+                "user_id": 7,
+                "permission_name": "view_documents"
+            },
+            {
+                "id": 7,
+                "user_id": 8,
+                "permission_name": "view_documents"
+            },
+            {
+                "id": 8,
+                "user_id": 2,
+                "permission_name": "create_documents"
+            },
+            {
+                "id": 10,
+                "user_id": 4,
+                "permission_name": "create_documents"
+            },
+            {
+                "id": 12,
+                "user_id": 6,
+                "permission_name": "create_documents"
+            },
+            {
+                "id": 15,
+                "user_id": 2,
+                "permission_name": "manage_users"
+            },
+            {
+                "id": 16,
+                "user_id": 2,
+                "permission_name": "access_admin_dashboard"
+            },
+            {
+                "id": 17,
+                "user_id": 2,
+                "permission_name": "manage_departments"
+            },
+            {
+                "id": 19,
+                "user_id": 4,
+                "permission_name": "manage_departments"
+            },
+            {
+                "id": 20,
+                "user_id": 2,
+                "permission_name": "view_reports"
+            },
+            {
+                "id": 22,
+                "user_id": 4,
+                "permission_name": "view_reports"
+            },
+            {
+                "id": 24,
+                "user_id": 6,
+                "permission_name": "view_reports"
+            },
+            {
+                "id": 27,
+                "user_id": 2,
+                "permission_name": "create_reports"
+            },
+            {
+                "id": 28,
+                "user_id": 7,
+                "permission_name": "create_reports"
+            },
+            {
+                "id": 29,
+                "user_id": 8,
+                "permission_name": "create_reports"
+            },
+            {
+                "id": 68,
+                "user_id": 3,
+                "permission_name": "view_documents"
+            },
+            {
+                "id": 69,
+                "user_id": 3,
+                "permission_name": "manage_users"
+            },
+            {
+                "id": 92,
+                "user_id": 5,
+                "permission_name": "manage_colleges"
+            },
+            {
+                "id": 93,
+                "user_id": 5,
+                "permission_name": "add_college"
+            },
+            {
+                "id": 94,
+                "user_id": 5,
+                "permission_name": "edit_college"
+            },
+            {
+                "id": 95,
+                "user_id": 5,
+                "permission_name": "delete_college"
+            },
+            {
+                "id": 96,
+                "user_id": 5,
+                "permission_name": "view_colleges"
+            },
+            {
+                "id": 97,
+                "user_id": 5,
+                "permission_name": "manage_units"
+            },
+            {
+                "id": 98,
+                "user_id": 5,
+                "permission_name": "add_unit"
+            },
+            {
+                "id": 99,
+                "user_id": 5,
+                "permission_name": "edit_unit"
+            },
+            {
+                "id": 100,
+                "user_id": 5,
+                "permission_name": "delete_unit"
+            },
+            {
+                "id": 101,
+                "user_id": 5,
+                "permission_name": "view_units"
+            },
+            {
+                "id": 102,
+                "user_id": 5,
+                "permission_name": "manage_reports"
+            },
+            {
+                "id": 103,
+                "user_id": 5,
+                "permission_name": "generate_reports"
+            },
+            {
+                "id": 104,
+                "user_id": 5,
+                "permission_name": "export_reports"
+            },
+            {
+                "id": 105,
+                "user_id": 5,
+                "permission_name": "view_reports"
+            }
+        ]
+    },
+    "reminders": {
+        "structure": "CREATE TABLE `reminders` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `user_id` int(11) NOT NULL,\n  `document_id` int(11) DEFAULT NULL,\n  `title` varchar(255) NOT NULL,\n  `description` text DEFAULT NULL,\n  `reminder_date` date NOT NULL,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  PRIMARY KEY (`id`),\n  KEY `user_id` (`user_id`),\n  KEY `document_id` (`document_id`),\n  CONSTRAINT `reminders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),\n  CONSTRAINT `reminders_ibfk_2` FOREIGN KEY (`document_id`) REFERENCES `documents` (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": []
+    },
+    "reports": {
+        "structure": "CREATE TABLE `reports` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `title` varchar(255) NOT NULL,\n  `content` text DEFAULT NULL,\n  `file_path` varchar(255) DEFAULT NULL,\n  `unit_id` int(11) DEFAULT NULL,\n  `document_id` int(11) DEFAULT NULL,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  PRIMARY KEY (`id`),\n  KEY `unit_id` (`unit_id`),\n  KEY `document_id` (`document_id`),\n  CONSTRAINT `reports_ibfk_1` FOREIGN KEY (`unit_id`) REFERENCES `units` (`id`),\n  CONSTRAINT `reports_ibfk_2` FOREIGN KEY (`document_id`) REFERENCES `documents` (`id`)\n) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": [
+            {
+                "id": 1,
+                "title": "vgbnm, ",
+                "content": "grfg fg gf f fg fg fg fg fg gf fg fg fg fg gf fg fg fg fg f",
+                "file_path": "dg fg g",
+                "unit_id": 1,
+                "document_id": 1,
+                "created_at": "2025-01-16 21:51:53"
+            }
+        ]
+    },
+    "system_logs": {
+        "structure": "CREATE TABLE `system_logs` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `type` varchar(50) NOT NULL,\n  `message` text NOT NULL,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  PRIMARY KEY (`id`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": []
+    },
+    "units": {
+        "structure": "CREATE TABLE `units` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `name` varchar(255) NOT NULL,\n  `description` text DEFAULT NULL,\n  `university_id` int(11) DEFAULT NULL,\n  `college_id` int(11) DEFAULT NULL,\n  `division_id` int(11) DEFAULT NULL,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),\n  `updated_by` int(11) DEFAULT NULL,\n  `created_by` int(11) DEFAULT NULL,\n  PRIMARY KEY (`id`),\n  KEY `created_by` (`created_by`),\n  KEY `updated_by` (`updated_by`),\n  KEY `idx_units_university` (`university_id`),\n  KEY `idx_units_college` (`college_id`),\n  KEY `idx_units_division` (`division_id`),\n  CONSTRAINT `units_ibfk_1` FOREIGN KEY (`college_id`) REFERENCES `colleges` (`id`),\n  CONSTRAINT `units_ibfk_2` FOREIGN KEY (`division_id`) REFERENCES `university_divisions` (`id`),\n  CONSTRAINT `units_ibfk_3` FOREIGN KEY (`university_id`) REFERENCES `universities` (`id`),\n  CONSTRAINT `units_ibfk_4` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`),\n  CONSTRAINT `units_ibfk_5` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`)\n) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": [
+            {
+                "id": 1,
+                "name": "\u0648\u062d\u062f\u0629 \u0634\u0624\u0648\u0646 \u0627\u0644\u0645\u0631\u0627\u0629",
+                "description": null,
+                "university_id": 1,
+                "college_id": 1,
+                "division_id": 1,
+                "created_at": "2025-01-16 18:29:02",
+                "updated_at": "2025-01-17 00:02:07",
+                "updated_by": null,
+                "created_by": null
+            }
+        ]
+    },
+    "universities": {
+        "structure": "CREATE TABLE `universities` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `name` varchar(255) NOT NULL,\n  `location` varchar(255) DEFAULT NULL,\n  `ministry_department_id` int(11) DEFAULT NULL,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  `created_by` int(11) DEFAULT NULL,\n  `updated_at` timestamp NULL DEFAULT NULL,\n  `updated_by` int(11) DEFAULT NULL,\n  PRIMARY KEY (`id`),\n  KEY `fk_ministry_dept` (`ministry_department_id`),\n  KEY `fk_created_by` (`created_by`),\n  KEY `fk_updated_by` (`updated_by`),\n  CONSTRAINT `fk_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`),\n  CONSTRAINT `fk_ministry_dept` FOREIGN KEY (`ministry_department_id`) REFERENCES `ministry_departments` (`id`),\n  CONSTRAINT `fk_updated_by` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`),\n  CONSTRAINT `universities_ibfk_1` FOREIGN KEY (`ministry_department_id`) REFERENCES `ministry_departments` (`id`),\n  CONSTRAINT `universities_ibfk_2` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`)\n) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": [
+            {
+                "id": 1,
+                "name": "\u062c\u0627\u0645\u0639\u0629 \u0628\u063a\u062f\u0627\u062f",
+                "location": "\u0628\u063a\u062f\u0627\u062f",
+                "ministry_department_id": 1,
+                "created_at": "2025-01-16 18:29:02",
+                "created_by": null,
+                "updated_at": null,
+                "updated_by": null
+            },
+            {
+                "id": 12,
+                "name": "\u062c\u0627\u0645\u0639\u0629 \u0627\u0644\u0627\u0646\u0628\u0627\u0631",
+                "location": "\u0627\u0644\u0627\u0646\u0628\u0627\u0631",
+                "ministry_department_id": 1,
+                "created_at": "2025-01-16 23:10:57",
+                "created_by": 2,
+                "updated_at": null,
+                "updated_by": null
+            }
+        ]
+    },
+    "university_divisions": {
+        "structure": "CREATE TABLE `university_divisions` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `name` varchar(255) NOT NULL,\n  `university_id` int(11) DEFAULT NULL,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  PRIMARY KEY (`id`),\n  KEY `university_id` (`university_id`),\n  CONSTRAINT `university_divisions_ibfk_1` FOREIGN KEY (`university_id`) REFERENCES `universities` (`id`)\n) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": [
+            {
+                "id": 1,
+                "name": "\u0634\u0639\u0628\u0629 \u0634\u0624\u0648\u0646 \u0627\u0644\u0645\u0631\u0627\u0629 \u0628\u063a\u062f\u0627\u062f",
+                "university_id": 1,
+                "created_at": "2025-01-16 18:29:02"
+            },
+            {
+                "id": 2,
+                "name": "\u0634\u0639\u0628\u0629 \u0634\u0624\u0648\u0646 \u0627\u0644\u0645\u0631\u0627\u0629 \u0627\u0644\u0627\u0646\u0628\u0627\u0631",
+                "university_id": 12,
+                "created_at": "2025-01-16 23:12:28"
+            }
+        ]
+    },
+    "user_entities": {
+        "structure": "CREATE TABLE `user_entities` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `user_id` int(11) NOT NULL,\n  `entity_type` enum('ministry','division','unit') NOT NULL,\n  `entity_id` int(11) NOT NULL,\n  `is_primary` tinyint(1) DEFAULT 1,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `unique_user_entity` (`user_id`,`entity_type`,`entity_id`),\n  KEY `idx_user_entities_user` (`user_id`),\n  KEY `idx_user_entities_entity` (`entity_type`,`entity_id`),\n  CONSTRAINT `user_entities_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE\n) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": [
+            {
+                "id": 11,
+                "user_id": 5,
+                "entity_type": "division",
+                "entity_id": 2,
+                "is_primary": 1,
+                "created_at": "2025-01-16 23:31:07"
+            }
+        ]
+    },
+    "users": {
+        "structure": "CREATE TABLE `users` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `username` varchar(50) NOT NULL,\n  `password` varchar(255) NOT NULL,\n  `full_name` varchar(100) NOT NULL,\n  `email` varchar(100) NOT NULL,\n  `role` enum('admin','ministry','division','unit') NOT NULL,\n  `university_id` int(11) DEFAULT NULL,\n  `entity_id` int(11) DEFAULT NULL,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),\n  `last_login` timestamp NULL DEFAULT NULL,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `username` (`username`),\n  UNIQUE KEY `email` (`email`),\n  KEY `university_id` (`university_id`),\n  CONSTRAINT `users_ibfk_1` FOREIGN KEY (`university_id`) REFERENCES `universities` (`id`),\n  CONSTRAINT `users_ibfk_2` FOREIGN KEY (`university_id`) REFERENCES `universities` (`id`)\n) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+        "data": [
+            {
+                "id": 2,
+                "username": "admin",
+                "password": "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC\/.og\/at2.uheWG\/igi",
+                "full_name": "\u0645\u062f\u064a\u0631 \u0627\u0644\u0646\u0638\u0627\u0645",
+                "email": "admin@example.com",
+                "role": "admin",
+                "university_id": null,
+                "entity_id": null,
+                "created_at": "2025-01-16 18:53:42",
+                "last_login": "2025-01-17 10:38:08"
+            },
+            {
+                "id": 3,
+                "username": "ministry1",
+                "password": "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC\/.og\/at2.uheWG\/igi",
+                "full_name": "\u0623\u062d\u0645\u062f \u0645\u062d\u0645\u062f",
+                "email": "ahmed@ministry.gov",
+                "role": "ministry",
+                "university_id": null,
+                "entity_id": 1,
+                "created_at": "2025-01-16 18:53:42",
+                "last_login": "2025-01-16 23:28:51"
+            },
+            {
+                "id": 4,
+                "username": "ministry2",
+                "password": "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC\/.og\/at2.uheWG\/igi",
+                "full_name": "\u0641\u0627\u0637\u0645\u0629 \u0639\u0644\u064a",
+                "email": "fatima@ministry.gov",
+                "role": "ministry",
+                "university_id": null,
+                "entity_id": 1,
+                "created_at": "2025-01-16 18:53:42",
+                "last_login": null
+            },
+            {
+                "id": 5,
+                "username": "division1",
+                "password": "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC\/.og\/at2.uheWG\/igi",
+                "full_name": "\u062e\u0627\u0644\u062f \u0639\u0645\u0631",
+                "email": "khaled@division.gov",
+                "role": "division",
+                "university_id": null,
+                "entity_id": null,
+                "created_at": "2025-01-16 18:53:42",
+                "last_login": "2025-01-17 00:15:51"
+            },
+            {
+                "id": 6,
+                "username": "division2",
+                "password": "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC\/.og\/at2.uheWG\/igi",
+                "full_name": "\u0645\u0631\u064a\u0645 \u0633\u0639\u064a\u062f",
+                "email": "mariam@division.gov",
+                "role": "division",
+                "university_id": null,
+                "entity_id": 102,
+                "created_at": "2025-01-16 18:53:42",
+                "last_login": null
+            },
+            {
+                "id": 7,
+                "username": "unit1",
+                "password": "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC\/.og\/at2.uheWG\/igi",
+                "full_name": "\u0639\u0645\u0631 \u062d\u0633\u0646",
+                "email": "omar@unit.gov",
+                "role": "unit",
+                "university_id": null,
+                "entity_id": 201,
+                "created_at": "2025-01-16 18:53:42",
+                "last_login": "2025-01-16 22:45:56"
+            },
+            {
+                "id": 8,
+                "username": "unit2",
+                "password": "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC\/.og\/at2.uheWG\/igi",
+                "full_name": "\u0646\u0648\u0631\u0629 \u0633\u0627\u0644\u0645",
+                "email": "noura@unit.gov",
+                "role": "unit",
+                "university_id": null,
+                "entity_id": 202,
+                "created_at": "2025-01-16 18:53:42",
+                "last_login": null
+            }
+        ]
+    }
+}

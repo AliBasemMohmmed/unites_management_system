@@ -1,0 +1,76 @@
+/* تنسيق سير العمل */
+.timeline {
+    position: relative;
+    padding: 20px 0;
+  }
+  
+  .timeline-item {
+    position: relative;
+    padding-left: 40px;
+    margin-bottom: 20px;
+  }
+  
+  .timeline-marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background-color: #007bff;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #007bff;
+  }
+  
+  .timeline-content {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+  }
+  
+  .timeline-content h6 {
+    margin: 0 0 10px;
+    color: #007bff;
+  }
+  
+  .timeline-content small {
+    color: #6c757d;
+  }
+  
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #dee2e6;
+  }
+  
+  .reminder-item {
+    padding: 10px;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  .reminder-item:last-child {
+    border-bottom: none;
+  }
+  
+  .related-doc-item {
+    padding: 10px;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  .related-doc-item:last-child {
+    border-bottom: none;
+  }
+  
+  .related-doc-item a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .related-doc-item a:hover {
+    text-decoration: underline;
+  }
+  

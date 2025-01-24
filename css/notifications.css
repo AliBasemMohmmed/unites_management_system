@@ -1,0 +1,42 @@
+/* تكملة تنسيق الإشعارات */
+.notification-header small {
+  color: #6c757d;
+  font-size: 0.85em;
+}
+
+.notification-content {
+  margin: 5px 0;
+  color: #212529;
+}
+
+.notification-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+#notifications-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #dc3545;
+  color: white;
+  border-radius: 50%;
+  padding: 3px 6px;
+  font-size: 0.75em;
+}
+
+#toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1050;
+}
+
+.toast {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 4px;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  margin-bottom: 10px;
+}
