@@ -677,11 +677,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 switch($userInfo['role_name']) {
                     case 'unit_head':
                         $roleTitle = 'رئيس وحدة في';
-                        $entityName = $unitInfo['college_name'] . ' - ' . $unitInfo['university_name'];
+                        $entityName = $unitInfo['college_name'] . ' - جامعة الأنبار';
                         break;
                     case 'division_head':
                         $roleTitle = 'رئيس شعبة في';
-                        $entityName = $userInfo['division_name'] . ' - ' . $userInfo['university_name'];
+                        $entityName = $userInfo['division_name'] . ' - جامعة الأنبار';
                         break;
                     case 'admin':
                         $roleTitle = 'مدير النظام';

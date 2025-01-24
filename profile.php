@@ -5,13 +5,13 @@ requireLogin();
 
 // جلب بيانات المستخدم
 $stmt = $pdo->prepare("
-    SELECT u.*, 
+    SELECT u.*, r.name as role_name,
            CASE 
-             WHEN u.role = 'ministry' THEN (SELECT name FROM ministry_departments WHERE id = u.entity_id)
-             WHEN u.role = 'division' THEN (SELECT name FROM university_divisions WHERE id = u.entity_id)
-             WHEN u.role = 'unit' THEN (SELECT name FROM units WHERE id = u.entity_id)
+             WHEN u.college_id IS NOT NULL THEN (SELECT name FROM colleges WHERE id = u.college_id)
+             ELSE 'غير محدد'
            END as entity_name
     FROM users u 
+    JOIN roles r ON u.role_id = r.id
     WHERE u.id = ?
 ");
 $stmt->execute([$_SESSION['user_id']]);
@@ -64,66 +64,149 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include 'header.php';
 ?>
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mb-0">الملف الشخصي</h4>
+<!-- إضافة Animate.css -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+<style>
+    .profile-card {
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        border-radius: 20px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .profile-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .profile-header {
+        background: linear-gradient(45deg, #007bff, #00a5ff);
+        color: white;
+        border-radius: 20px 20px 0 0;
+        padding: 20px;
+    }
+    
+    .form-control {
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        padding: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        box-shadow: 0 0 0 3px rgba(0,123,255,0.2);
+        border-color: #007bff;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(45deg, #007bff, #00a5ff);
+        border: none;
+        border-radius: 10px;
+        padding: 12px 30px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+    }
+    
+    .alert {
+        border-radius: 10px;
+        animation: fadeInDown 0.5s ease;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .readonly-field {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="profile-card animate__animated animate__fadeIn">
+                <div class="profile-header">
+                    <h3 class="mb-0 text-center">الملف الشخصي</h3>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <?php if (isset($success)): ?>
-                        <div class="alert alert-success"><?php echo $success; ?></div>
+                        <div class="alert alert-success animate__animated animate__fadeInDown">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <?php echo $success; ?>
+                        </div>
                     <?php endif; ?>
                     
                     <?php if (isset($error)): ?>
-                        <div class="alert alert-danger"><?php echo $error; ?></div>
+                        <div class="alert alert-danger animate__animated animate__fadeInDown">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <?php echo $error; ?>
+                        </div>
                     <?php endif; ?>
 
-                    <form method="POST">
-                        <div class="row mb-3">
+                    <form method="POST" class="animate__animated animate__fadeIn animate__delay-1s">
+                        <div class="row">
                             <div class="col-md-6">
-                                <label class="form-label">اسم المستخدم</label>
-                                <input type="text" class="form-control" value="<?php echo htmlspecialchars($user['username']); ?>" readonly>
+                                <div class="form-group">
+                                    <label class="form-label fw-bold">اسم المستخدم</label>
+                                    <input type="text" class="form-control readonly-field" value="<?php echo htmlspecialchars($user['username']); ?>" readonly>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">الدور</label>
-                                <input type="text" class="form-control" value="<?php echo htmlspecialchars($user['role']); ?>" readonly>
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">الاسم الكامل</label>
-                                <input type="text" name="full_name" class="form-control" value="<?php echo htmlspecialchars($user['full_name']); ?>" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">البريد الإلكتروني</label>
-                                <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($user['email']); ?>" required>
+                                <div class="form-group">
+                                    <label class="form-label fw-bold">الدور</label>
+                                    <input type="text" class="form-control readonly-field" value="<?php echo htmlspecialchars($user['role_name']); ?>" readonly>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="row mb-3">
+                        <div class="row">
                             <div class="col-md-6">
-                                <label class="form-label">الجهة</label>
-                                <input type="text" class="form-control" value="<?php echo htmlspecialchars($user['entity_name'] ?? 'غير محدد'); ?>" readonly>
+                                <div class="form-group">
+                                    <label class="form-label fw-bold">الاسم الكامل</label>
+                                    <input type="text" name="full_name" class="form-control" value="<?php echo htmlspecialchars($user['full_name']); ?>" required>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">تاريخ الإنشاء</label>
-                                <input type="text" class="form-control" value="<?php echo htmlspecialchars($user['created_at']); ?>" readonly>
+                                <div class="form-group">
+                                    <label class="form-label fw-bold">البريد الإلكتروني</label>
+                                    <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($user['email']); ?>" required>
+                                </div>
                             </div>
                         </div>
 
-                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold">الجهة</label>
+                                    <input type="text" class="form-control readonly-field" value="<?php echo htmlspecialchars($user['entity_name'] ?? 'غير محدد'); ?>" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold">تاريخ الإنشاء</label>
+                                    <input type="text" class="form-control readonly-field" value="<?php echo htmlspecialchars($user['created_at']); ?>" readonly>
+                                </div>
+                            </div>
+                        </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">كلمة المرور الجديدة</label>
+                        <hr class="my-4">
+
+                        <div class="form-group">
+                            <label class="form-label fw-bold">كلمة المرور الجديدة</label>
                             <input type="password" name="new_password" class="form-control" minlength="6">
-                            <div class="form-text">اتركها فارغة إذا لم ترد تغيير كلمة المرور</div>
+                            <small class="text-muted">اتركها فارغة إذا لم ترد تغيير كلمة المرور</small>
                         </div>
 
-                        <div class="text-end">
-                            <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary px-5">
+                                <i class="fas fa-save me-2"></i>
+                                حفظ التغييرات
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -131,5 +214,8 @@ include 'header.php';
         </div>
     </div>
 </div>
+
+<!-- إضافة Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
 <?php include 'footer.php'; ?> 

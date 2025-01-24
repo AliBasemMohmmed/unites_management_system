@@ -4,6 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once 'config.php';
+require_once 'functions.php';
 
 function requireLogin() {
     if (!isset($_SESSION['user_id'])) {
@@ -123,5 +124,33 @@ function logout() {
     session_destroy();
     header('Location: login.php');
     exit();
+}
+
+// دالة لتحديث معلومات المستخدم في الجلسة
+function updateUserSession($userId) {
+    global $pdo;
+    
+    try {
+        $stmt = $pdo->prepare("
+            SELECT u.*, r.id as role_id, r.name as role_name, r.display_name as role_display_name 
+            FROM users u 
+            JOIN roles r ON u.role_id = r.id 
+            WHERE u.id = ?
+        ");
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch();
+        
+        if ($user) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_name'] = $user['full_name'];
+            $_SESSION['role_id'] = $user['role_id'];
+            $_SESSION['role_name'] = $user['role_name'];
+            $_SESSION['role_display_name'] = $user['role_display_name'];
+            return true;
+        }
+    } catch (PDOException $e) {
+        error_log("خطأ في تحديث معلومات المستخدم: " . $e->getMessage());
+    }
+    return false;
 }
 ?>

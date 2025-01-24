@@ -9,13 +9,24 @@ if (!isset($_SESSION['user_id'])) {
 
 // جلب معلومات المستخدم ودوره
 $stmt = $pdo->prepare("
-    SELECT u.*, r.name as role_name, r.display_name as role_display_name 
+    SELECT u.*, r.id as role_id, r.name as role_name, r.display_name as role_display_name 
     FROM users u 
     JOIN roles r ON u.role_id = r.id 
     WHERE u.id = ?
 ");
 $stmt->execute([$_SESSION['user_id']]);
 $userInfo = $stmt->fetch();
+
+// تحديث معلومات الدور في الجلسة
+if ($userInfo) {
+    $_SESSION['role_id'] = $userInfo['role_id'];
+    $_SESSION['role_name'] = $userInfo['role_name'];
+} else {
+    // إذا لم يتم العثور على معلومات المستخدم، قم بتسجيل الخروج
+    session_destroy();
+    header('Location: login.php');
+    exit;
+}
 
 // جلب عدد الإشعارات غير المقروءة
 $unreadNotifications = 0;
@@ -268,27 +279,42 @@ try {
 
             <!-- القائمة الرئيسية -->
             <ul class="navbar-nav me-auto">
-                <?php if ($userInfo['role_name'] == 'admin'): ?>
-                    <li class="nav-item">
-                        <a class="nav-link" href="divisions.php">
-                            <i class="fas fa-layer-group me-1"></i>الشعب
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a class="nav-link" href="colleges.php">
-                            <i class="fas fa-building me-1"></i>الكليات
-                        </a>
-                    </li>
+                <?php
+                // التحقق من صلاحيات الشعب
+                $canViewDivisions = hasPermission('view_divisions') || hasPermission('manage_divisions');
+                
+                // التحقق من صلاحيات الكليات
+                $canViewColleges = hasPermission('view_colleges') || hasPermission('manage_colleges');
+                
+                // التحقق من صلاحيات الوحدات
+                $canViewUnits = hasPermission('view_units') || hasPermission('manage_units');
+                ?>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="units.php">
-                            <i class="fas fa-boxes me-1"></i>الوحدات
-                        </a>
-                    </li>
+                <?php if (isAdmin() || $canViewDivisions): ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="divisions.php">
+                        <i class="fas fa-layer-group me-1"></i>الشعب
+                    </a>
+                </li>
+                <?php endif; ?>
+                
+                <?php if (isAdmin() || $canViewColleges): ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="colleges.php">
+                        <i class="fas fa-building me-1"></i>الكليات
+                    </a>
+                </li>
                 <?php endif; ?>
 
-                <?php if (in_array($userInfo['role_name'], ['unit_head', 'unit_employee', 'division_head', 'division_employee', 'admin'])): ?>
+                <?php if (isAdmin() || $canViewUnits): ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="units.php">
+                        <i class="fas fa-boxes me-1"></i>الوحدات
+                    </a>
+                </li>
+                <?php endif; ?>
+
+                <?php if (isAdmin() || hasPermission('view_documents')): ?>
                     <!-- قائمة الكتب والمراسلات -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
@@ -296,7 +322,7 @@ try {
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="documents.php">عرض الكتب</a></li>
-                            <?php if (in_array($userInfo['role_name'], ['unit_head', 'division_head', 'admin'])): ?>
+                            <?php if (isAdmin() || hasPermission('manage_documents')): ?>
                                 <li><a class="dropdown-item" href="process_document.php">إضافة كتاب جديد</a></li>
                             <?php endif; ?>
                             <li><a class="dropdown-item" href="document_workflow.php">تدفق الكتب</a></li>
@@ -305,18 +331,20 @@ try {
                     </li>
 
                     <!-- قائمة التقارير -->
+                    <?php if (isAdmin() || hasPermission('view_reports')): ?>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                             <i class="fas fa-chart-bar me-1"></i>التقارير
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="reports.php">التقارير العامة</a></li>
-                            <?php if (in_array($userInfo['role_name'], ['unit_head', 'division_head', 'admin'])): ?>
+                            <?php if (isAdmin() || hasPermission('manage_reports')): ?>
                                 <li><a class="dropdown-item" href="advanced_reports.php">التقارير المتقدمة</a></li>
                             <?php endif; ?>
                             <li><a class="dropdown-item" href="statistics.php">الإحصائيات</a></li>
                         </ul>
                     </li>
+                    <?php endif; ?>
                 <?php endif; ?>
             </ul>
 
@@ -426,21 +454,21 @@ try {
                         </a></li>
                         <li><a class="dropdown-item" href="export.php">
                             <i class="fas fa-file-export me-2"></i>تصدير البيانات
-                        </a></li>  <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="logout.php">
-                            <i class="fas fa-sign-out-alt me-2"></i>تسجيل الخروج
-                        </a></li>
+                     
                         <?php endif; ?>
-
-                        <!-- <li><hr class="dropdown-divider"></li>
+  
+                        <li><hr class="dropdown-divider"></li>
                         <li><h6 class="dropdown-header">الأدوات</h6></li>
                         <li><a class="dropdown-item" href="reminders.php">
                             <i class="fas fa-clock me-2"></i>التذكيرات
                         </a></li>
                         <li><a class="dropdown-item" href="settings.php">
                             <i class="fas fa-cog me-2"></i>الإعدادات
-                        </a></li> -->
-                        
+                        </a></li>
+                         </a></li>  <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="logout.php">
+                            <i class="fas fa-sign-out-alt me-2"></i>تسجيل الخروج
+                        </a></li>
                       
                     </ul>
                 </li>

@@ -4,13 +4,29 @@ require_once 'auth.php';
 requireLogin();
 
 // التحقق من الصلاحيات
-$userRole = $_SESSION['user_role'];
+$userRole = $_SESSION['user_role'] ?? null;
+$roleId = $_SESSION['role_id'] ?? null;
 $userEntityType = $_SESSION['entity_type'] ?? null;
 $userEntityId = $_SESSION['entity_id'] ?? null;
 
-// فقط الأدمن ومدراء الشعب يمكنهم الوصول
-if ($userRole !== 'admin' && $userEntityType !== 'division') {
-    die('غير مصرح لك بالوصول إلى هذه الصفحة');
+// التأكد من وجود role_id
+if (!$roleId) {
+    die('خطأ: لم يتم العثور على دور المستخدم');
+}
+
+// التحقق من الصلاحيات للوصول إلى الصفحة
+$stmt = $pdo->prepare("
+    SELECT COUNT(*) as has_permission 
+    FROM role_default_permissions rdp 
+    WHERE rdp.role_id = ? 
+    AND rdp.permission_name IN ('view_colleges', 'manage_colleges', 'add_college', 'edit_college', 'delete_college', 'all_permissions')
+");
+$stmt->execute([$roleId]);
+$permission = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// إذا كان المستخدم admin أو لديه الصلاحيات المطلوبة
+if (!($userRole === 'admin' || $permission['has_permission'] > 0)) {
+    die('غير مصرح لك بالوصول إلى هذه الصفحة. الرجاء التواصل مع مدير النظام.');
 }
 
 // التحقق من وجود الجدول وتحديثه
