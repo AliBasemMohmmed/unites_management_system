@@ -516,6 +516,11 @@ function getDefaultPermissions($role) {
  */
 function getUserRolePermissions($role_id) {
     global $pdo;
+    
+    if (!$role_id) {
+        return [];
+    }
+    
     try {
         $stmt = $pdo->prepare("
             SELECT permission_name 
@@ -523,9 +528,10 @@ function getUserRolePermissions($role_id) {
             WHERE role_id = ?
         ");
         $stmt->execute([$role_id]);
+        
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
-    } catch (Exception $e) {
-        error_log("خطأ في جلب صلاحيات الدور: " . $e->getMessage());
+    } catch (PDOException $e) {
+        error_log("Error fetching role permissions: " . $e->getMessage());
         return [];
     }
 }

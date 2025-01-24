@@ -12,39 +12,13 @@ if (!$userInfo || $userInfo['role_name'] !== 'admin') {
     exit('غير مصرح لك بالوصول');
 }
 
-// معالجة تحديث الصلاحيات الافتراضية للأدوار
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_default_permissions'])) {
-    try {
-        $role_id = $_POST['role_id'];
-        $permissions = $_POST['permissions'] ?? [];
-        
-        // حذف الصلاحيات القديمة للدور
-        $stmt = $pdo->prepare("DELETE FROM role_default_permissions WHERE role_id = ?");
-        $stmt->execute([$role_id]);
-        
-        // إضافة الصلاحيات الجديدة
-        if (!empty($permissions)) {
-            $stmt = $pdo->prepare("INSERT INTO role_default_permissions (role_id, permission_name) VALUES (?, ?)");
-            foreach ($permissions as $permission) {
-                $stmt->execute([$role_id, $permission]);
-            }
-        }
-        
-        $_SESSION['success'] = "تم تحديث صلاحيات الدور بنجاح";
-        logSystemActivity("تم تحديث صلاحيات الدور: $role_id", 'permissions', $_SESSION['user_id']);
-    } catch (Exception $e) {
-        $_SESSION['error'] = "حدث خطأ أثناء تحديث الصلاحيات";
-        error_log($e->getMessage());
-    }
-}
-
 // جلب قائمة المستخدمين مع صلاحياتهم
 $users = $pdo->query("
     SELECT u.id, u.username, u.full_name, r.id as role_id, r.name as role_name, r.display_name as role_display_name,
-           GROUP_CONCAT(p.permission_name) as current_permissions
+           GROUP_CONCAT(DISTINCT rdp.permission_name) as current_permissions
     FROM users u 
     LEFT JOIN roles r ON u.role_id = r.id
-    LEFT JOIN permissions p ON u.id = p.user_id 
+    LEFT JOIN role_default_permissions rdp ON rdp.role_id = r.id
     WHERE r.name != 'admin'
     GROUP BY u.id, u.username, u.full_name, r.id, r.name, r.display_name
 ")->fetchAll();
@@ -72,6 +46,91 @@ $permissionGroups = [
         strpos($key, 'permission') !== false
     , ARRAY_FILTER_USE_KEY),
 ];
+
+// معالجة تحديث الصلاحيات الافتراضية للأدوار
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_default_permissions'])) {
+    // التحقق من أن الطلب هو طلب AJAX
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+              
+    if (!$isAjax) {
+        header('HTTP/1.1 400 Bad Request');
+        die('طلب غير صالح');
+    }
+
+    // تنظيف أي مخرجات سابقة
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+    
+    header('Content-Type: application/json; charset=utf-8');
+    
+    try {
+        if (!isset($_POST['role_id'])) {
+            throw new Exception("لم يتم تحديد الدور");
+        }
+
+        $pdo->beginTransaction();
+        
+        $role_id = filter_var($_POST['role_id'], FILTER_VALIDATE_INT);
+        if (!$role_id) {
+            throw new Exception("معرف الدور غير صالح");
+        }
+
+        $permissions = isset($_POST['permissions']) ? (array)$_POST['permissions'] : [];
+        
+        // التحقق من وجود الدور
+        $stmt = $pdo->prepare("SELECT id FROM roles WHERE id = ?");
+        $stmt->execute([$role_id]);
+        if (!$stmt->fetch()) {
+            throw new Exception("الدور غير موجود");
+        }
+        
+        // حذف الصلاحيات القديمة للدور
+        $stmt = $pdo->prepare("DELETE FROM role_default_permissions WHERE role_id = ?");
+        $stmt->execute([$role_id]);
+        
+        // إضافة الصلاحيات الجديدة
+        if (!empty($permissions)) {
+            $stmt = $pdo->prepare("INSERT INTO role_default_permissions (role_id, permission_name) VALUES (?, ?)");
+            foreach ($permissions as $permission) {
+                // التحقق من صحة اسم الصلاحية
+                if (!array_key_exists($permission, $available_permissions)) {
+                    continue; // تخطي الصلاحيات غير الصالحة
+                }
+                try {
+                    $stmt->execute([$role_id, $permission]);
+                } catch (PDOException $e) {
+                    // تجاهل الأخطاء المتعلقة بتكرار القيم
+                    if ($e->getCode() != '23000') {
+                        throw $e;
+                    }
+                }
+            }
+        }
+        
+        $pdo->commit();
+        
+        // تسجيل النشاط
+        logSystemActivity("تم تحديث صلاحيات الدور: " . $role_id, 'permissions', $_SESSION['user_id']);
+        
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'تم تحديث صلاحيات الدور بنجاح'
+        ], JSON_UNESCAPED_UNICODE);
+        
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        error_log("Error updating permissions: " . $e->getMessage());
+        
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'حدث خطأ أثناء تحديث الصلاحيات: ' . $e->getMessage()
+        ], JSON_UNESCAPED_UNICODE);
+    }
+    exit;
+}
 ?>
 
 <style>
@@ -399,22 +458,34 @@ body {
                     <input type="hidden" name="role_id" value="<?php echo $role_id; ?>">
 
                     <?php foreach ($permissionGroups as $groupName => $permissions): ?>
-                    <div class="permission-card">
-                        <div class="card-header">
-                            <h6 class="mb-0">
-                                <i class="fas <?php echo getGroupIcon($groupName); ?> ml-2"></i>
-                                <?php echo $groupName; ?>
-                            </h6>
+                    <div class="permission-card mb-4">
+                        <div class="card-header bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    <i class="fas <?php echo getGroupIcon($groupName); ?> ml-2"></i>
+                                    <?php echo $groupName; ?>
+                                </h6>
+                                <div class="form-check">
+                                    <input type="checkbox" 
+                                           class="form-check-input select-all" 
+                                           id="select-all-<?php echo $role_id; ?>-<?php echo str_replace(' ', '_', $groupName); ?>"
+                                           data-group="role<?php echo $role_id; ?>-<?php echo str_replace(' ', '_', $groupName); ?>">
+                                    <label class="form-check-label" for="select-all-<?php echo $role_id; ?>-<?php echo str_replace(' ', '_', $groupName); ?>">
+                                        تحديد الكل
+                                    </label>
+                                </div>
+                            </div>
                         </div>
-                        <div class="permission-group">
+                        <div class="permission-group p-3">
                             <?php foreach ($permissions as $key => $label): ?>
-                            <div class="form-check">
+                            <div class="form-check mb-2">
                                 <input type="checkbox" 
+                                       class="form-check-input role<?php echo $role_id; ?>-<?php echo str_replace(' ', '_', $groupName); ?>"
+                                       id="perm-<?php echo $role_id; ?>-<?php echo $key; ?>"
                                        name="permissions[]" 
                                        value="<?php echo $key; ?>" 
-                                       class="form-check-input"
                                        <?php echo in_array($key, getUserRolePermissions($role_id)) ? 'checked' : ''; ?>>
-                                <label class="form-check-label">
+                                <label class="form-check-label" for="perm-<?php echo $role_id; ?>-<?php echo $key; ?>">
                                     <?php echo $label; ?>
                                 </label>
                             </div>
@@ -563,121 +634,118 @@ function getEntityIcon($type) {
 ?>
 
 <script>
-// تحسين التأثيرات الحركية للتبويبات
-document.querySelectorAll('.nav-link').forEach(tab => {
-    tab.addEventListener('click', function() {
-        document.querySelectorAll('.permission-group').forEach((group, index) => {
-            group.style.animation = 'none';
-            group.offsetHeight;
-            group.style.animation = `slideUp 0.5s ease forwards ${index * 0.1}s`;
-        });
-    });
-});
-
-// تحسين تأثيرات تحديد الصلاحيات
-document.querySelectorAll('.form-check-input').forEach(checkbox => {
-    checkbox.addEventListener('change', function() {
-        const permissionItem = this.closest('.form-check');
-        permissionItem.style.animation = 'none';
-        permissionItem.offsetHeight;
-        permissionItem.style.animation = 'fadeIn 0.3s ease';
-        
-        const permissionName = this.nextElementSibling.textContent.trim();
-        const action = this.checked ? 'تفعيل' : 'إلغاء';
-        showNotification(`تم ${action} صلاحية: ${permissionName}`, this.checked ? 'success' : 'warning');
-    });
-});
-
-// تحديث دالة إظهار التنبيهات
-function showNotification(message, type = 'success') {
-    // إزالة أي تنبيهات سابقة
-    const existingNotifications = document.querySelectorAll('.notification');
-    existingNotifications.forEach(notification => notification.remove());
-
-    // إنشاء تنبيه جديد
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} ml-2"></i>
-        ${message}
-    `;
-    document.body.appendChild(notification);
-
-    // إظهار التنبيه
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 100);
-
-    // إخفاء وإزالة التنبيه بعد 3 ثواني
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.5s ease forwards';
-        setTimeout(() => {
-            notification.remove();
-        }, 500);
-    }, 3000);
-}
-
-// تحديث معالجة التنبيهات الموجودة عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', function() {
-    const notifications = document.querySelectorAll('.notification');
-    notifications.forEach(notification => {
-        notification.classList.add('show');
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.5s ease forwards';
-            setTimeout(() => {
-                notification.remove();
-            }, 500);
-        }, 3000);
-    });
-});
+    // معالجة حفظ الصلاحيات
+    const permissionForms = document.querySelectorAll('.permission-form');
+    permissionForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            
+            // إظهار تأكيد الحفظ
+            Swal.fire({
+                title: 'تأكيد الحفظ',
+                text: 'هل أنت متأكد من حفظ هذه التغييرات؟',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، حفظ',
+                cancelButtonText: 'إلغاء'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // إظهار رسالة التحميل
+                    Swal.fire({
+                        title: 'جاري الحفظ...',
+                        text: 'يرجى الانتظار...',
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        willOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
 
-// تحسين تأثير "تحديد الكل"
-document.querySelectorAll('.select-all').forEach(checkbox => {
-    checkbox.addEventListener('change', function() {
-        const group = this.dataset.group;
-        const checkboxes = document.querySelectorAll('.' + group);
-        const action = this.checked ? 'تفعيل' : 'إلغاء';
-        
-        checkboxes.forEach((item, index) => {
-            setTimeout(() => {
-                item.checked = this.checked;
-                item.closest('.form-check').style.animation = 'fadeIn 0.3s ease';
-            }, index * 50);
+                    // إرسال البيانات
+                    fetch(window.location.href, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    })
+                    .then(response => {
+                        const contentType = response.headers.get('content-type');
+                        if (!contentType || !contentType.includes('application/json')) {
+                            throw new Error('استجابة غير صالحة من الخادم');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.status === 'success') {
+                            Swal.fire({
+                                title: 'تم بنجاح!',
+                                text: data.message,
+                                icon: 'success',
+                                timer: 1500
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            throw new Error(data.message || 'فشل تحديث الصلاحيات');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'خطأ!',
+                            text: error.message || 'حدث خطأ أثناء حفظ الصلاحيات',
+                            icon: 'error'
+                        });
+                    });
+                }
+            });
         });
-        
-        showNotification(`تم ${action} جميع الصلاحيات في المجموعة`, this.checked ? 'success' : 'warning');
     });
-});
 
-// تحسين تأكيد حفظ التغييرات
-document.querySelectorAll('.permission-form').forEach(form => {
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
+    // تحديث زر تحديد الكل
+    const selectAllButtons = document.querySelectorAll('.select-all');
+    selectAllButtons.forEach(button => {
+        updateSelectAllState(button);
         
-        Swal.fire({
-            title: 'تأكيد حفظ التغييرات',
-            text: 'هل أنت متأكد من حفظ التغييرات على الصلاحيات؟',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'نعم، حفظ التغييرات',
-            cancelButtonText: 'إلغاء',
-            customClass: {
-                confirmButton: 'btn btn-success ms-2',
-                cancelButton: 'btn btn-secondary'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                form.submit();
+        button.addEventListener('click', function() {
+            const groupName = this.dataset.group;
+            const checkboxes = document.querySelectorAll('input[type="checkbox"].' + groupName);
+            const isChecked = this.checked;
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+        });
+    });
+
+    // تحديث حالة زر تحديد الكل عند تغيير أي صلاحية
+    const permissionCheckboxes = document.querySelectorAll('.permission-group input[type="checkbox"]');
+    permissionCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const classes = Array.from(this.classList);
+            const groupClass = classes.find(cls => cls.startsWith('role'));
+            if (groupClass) {
+                const selectAllBtn = document.querySelector(`.select-all[data-group="${groupClass}"]`);
+                if (selectAllBtn) {
+                    updateSelectAllState(selectAllBtn);
+                }
             }
         });
     });
-});
 
-// تحسين عرض النوافذ المنبثقة
-document.querySelectorAll('.modal').forEach(modal => {
-    modal.addEventListener('show.bs.modal', function() {
-        this.querySelector('.modal-content').style.animation = 'slideUp 0.3s ease';
-    });
+    // دالة تحديث حالة زر تحديد الكل
+    function updateSelectAllState(selectAllBtn) {
+        const groupName = selectAllBtn.dataset.group;
+        const checkboxes = document.querySelectorAll('input[type="checkbox"].' + groupName);
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        
+        selectAllBtn.checked = checkedCount === checkboxes.length;
+        selectAllBtn.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+    }
 });
 </script>
 

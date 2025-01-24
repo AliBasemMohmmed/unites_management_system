@@ -426,6 +426,9 @@ try {
                         </a></li>
                         <li><a class="dropdown-item" href="export.php">
                             <i class="fas fa-file-export me-2"></i>تصدير البيانات
+                        </a></li>  <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="logout.php">
+                            <i class="fas fa-sign-out-alt me-2"></i>تسجيل الخروج
                         </a></li>
                         <?php endif; ?>
 
@@ -436,12 +439,9 @@ try {
                         </a></li>
                         <li><a class="dropdown-item" href="settings.php">
                             <i class="fas fa-cog me-2"></i>الإعدادات
-                        </a></li>
-                        
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="logout.php">
-                            <i class="fas fa-sign-out-alt me-2"></i>تسجيل الخروج
                         </a></li> -->
+                        
+                      
                     </ul>
                 </li>
             </ul>
