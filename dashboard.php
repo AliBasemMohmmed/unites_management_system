@@ -11,18 +11,25 @@ if (!$userInfo) {
     die('لم يتم العثور على معلومات المستخدم. الرجاء التواصل مع مدير النظام.');
 }
 
+// جلب معلومات الدور
+$stmt = $pdo->prepare("SELECT r.name as role_name, r.display_name as role_display_name FROM roles r WHERE r.id = ?");
+$stmt->execute([$userInfo['role_id']]);
+$roleInfo = $stmt->fetch();
+$userInfo['role_name'] = $roleInfo['role_name'];
+$userInfo['role_display_name'] = $roleInfo['role_display_name'];
+
 $welcomeMessage = getWelcomeMessage($userInfo);
 
 include 'header.php';
 
 // التأكد من وجود الدور
-if (!isset($userInfo['role'])) {
-    $userInfo['role'] = 'user';
+if (!isset($userInfo['role_name'])) {
+    $userInfo['role_name'] = 'user';
 }
 
 // إحصائيات حسب نوع المستخدم
 $stats = [];
-switch($userInfo['role']) {
+switch($userInfo['role_name']) {
   case 'admin':
     $stats = [
       'documents' => $pdo->query("SELECT COUNT(*) FROM documents")->fetchColumn(),
@@ -32,44 +39,31 @@ switch($userInfo['role']) {
     ];
     break;
   
-  case 'unit':
-    if (isset($userInfo['entity_id'])) {
+  case 'unit_head':
+  case 'unit_employee':
+    if (isset($userInfo['college_id'])) {
       $stats = [
-        'documents' => $pdo->query("SELECT COUNT(*) FROM documents WHERE sender_type = 'unit' AND sender_id = {$userInfo['entity_id']}")->fetchColumn(),
-        'pending_documents' => $pdo->query("SELECT COUNT(*) FROM documents WHERE sender_type = 'unit' AND sender_id = {$userInfo['entity_id']} AND status = 'pending'")->fetchColumn(),
-        'reports' => $pdo->query("SELECT COUNT(*) FROM reports WHERE unit_id = {$userInfo['entity_id']}")->fetchColumn(),
-        'staff' => $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'unit' AND entity_id = {$userInfo['entity_id']}")->fetchColumn()
+        'documents' => $pdo->query("SELECT COUNT(*) FROM documents WHERE sender_type = 'unit' AND sender_id = {$userInfo['college_id']}")->fetchColumn(),
+        'pending_documents' => $pdo->query("SELECT COUNT(*) FROM documents WHERE sender_type = 'unit' AND sender_id = {$userInfo['college_id']} AND status = 'pending'")->fetchColumn(),
+        'reports' => $pdo->query("SELECT COUNT(*) FROM reports WHERE unit_id = {$userInfo['college_id']}")->fetchColumn(),
+        'staff' => $pdo->query("SELECT COUNT(*) FROM users WHERE college_id = {$userInfo['college_id']}")->fetchColumn()
       ];
     }
     break;
     
-  case 'division':
-    if (isset($userInfo['entity_id'])) {
+  case 'division_head':
+  case 'division_employee':
+    if (isset($userInfo['division_id'])) {
       $stats = [
-        'documents' => $pdo->query("SELECT COUNT(*) FROM documents WHERE sender_type = 'division' AND sender_id = {$userInfo['entity_id']}")->fetchColumn(),
-        'units' => $pdo->query("SELECT COUNT(*) FROM units WHERE division_id = {$userInfo['entity_id']} AND is_active = 1")->fetchColumn(),
+        'documents' => $pdo->query("SELECT COUNT(*) FROM documents WHERE sender_type = 'division' AND sender_id = {$userInfo['division_id']}")->fetchColumn(),
+        'units' => $pdo->query("SELECT COUNT(*) FROM units WHERE division_id = {$userInfo['division_id']} AND is_active = 1")->fetchColumn(),
         'reports' => $pdo->query("
           SELECT COUNT(*) 
           FROM reports r 
           JOIN units u ON r.unit_id = u.id 
-          WHERE u.division_id = {$userInfo['entity_id']}
+          WHERE u.division_id = {$userInfo['division_id']}
           AND u.is_active = 1
         ")->fetchColumn()
-      ];
-    }
-    break;
-    
-  case 'ministry':
-    if (isset($userInfo['entity_id'])) {
-      $stats = [
-        'documents' => $pdo->query("SELECT COUNT(*) FROM documents WHERE sender_type = 'ministry' AND sender_id = {$userInfo['entity_id']}")->fetchColumn(),
-        'divisions' => $pdo->query("
-          SELECT COUNT(*) 
-          FROM university_divisions ud 
-          JOIN universities u ON ud.university_id = u.id 
-          WHERE u.ministry_department_id = {$userInfo['entity_id']}
-        ")->fetchColumn(),
-        'universities' => $pdo->query("SELECT COUNT(*) FROM universities WHERE ministry_department_id = {$userInfo['entity_id']}")->fetchColumn()
       ];
     }
     break;
@@ -77,24 +71,22 @@ switch($userInfo['role']) {
 
 // جلب معلومات الوحدة إذا كان المستخدم من نوع وحدة
 $unitInfo = null;
-if ($userInfo['role'] == 'unit') {
+if ($userInfo['role_name'] == 'unit_head' || $userInfo['role_name'] == 'unit_employee') {
     $stmt = $pdo->prepare("
         SELECT u.*, 
                c.name as college_name,
                d.name as division_name,
-               un.name as university_name,
                creator.full_name as created_by_name,
                updater.full_name as updated_by_name
         FROM units u
         LEFT JOIN colleges c ON u.college_id = c.id
         LEFT JOIN university_divisions d ON u.division_id = d.id
-        LEFT JOIN universities un ON u.university_id = un.id
         LEFT JOIN users creator ON u.created_by = creator.id
         LEFT JOIN users updater ON u.updated_by = updater.id
-        WHERE u.user_id = ? 
+        WHERE u.college_id = ? 
         AND u.is_active = 1
     ");
-    $stmt->execute([$_SESSION['user_id']]);
+    $stmt->execute([$userInfo['college_id']]);
     $unitInfo = $stmt->fetch();
 
     // إذا لم يتم العثور على معلومات الوحدة
@@ -106,14 +98,13 @@ if ($userInfo['role'] == 'unit') {
             'documents' => $pdo->query("SELECT COUNT(*) FROM documents WHERE sender_type = 'unit' AND sender_id = {$unitInfo['id']}")->fetchColumn(),
             'pending_documents' => $pdo->query("SELECT COUNT(*) FROM documents WHERE sender_type = 'unit' AND sender_id = {$unitInfo['id']} AND status = 'pending'")->fetchColumn(),
             'reports' => $pdo->query("SELECT COUNT(*) FROM reports WHERE unit_id = {$unitInfo['id']}")->fetchColumn(),
-            'staff' => $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'unit' AND id IN (SELECT user_id FROM units WHERE id = {$unitInfo['id']})")->fetchColumn()
+            'staff' => $pdo->query("SELECT COUNT(*) FROM users WHERE college_id = {$userInfo['college_id']}")->fetchColumn()
         ];
 
         // تحديث آخر الكتب
         $latestDocs = $pdo->query("
             SELECT d.*, 
                    CASE 
-                     WHEN d.sender_type = 'ministry' THEN (SELECT name FROM ministry_departments WHERE id = d.sender_id)
                      WHEN d.sender_type = 'division' THEN (SELECT name FROM university_divisions WHERE id = d.sender_id)
                      WHEN d.sender_type = 'unit' THEN (SELECT name FROM units WHERE id = d.sender_id)
                    END as sender_name
@@ -137,15 +128,15 @@ if ($userInfo['role'] == 'unit') {
 }
 
 // تحديث استعلامات الشعبة
-if ($userInfo['role'] == 'division' && isset($userInfo['entity_id'])) {
+if (($userInfo['role_name'] == 'division_head' || $userInfo['role_name'] == 'division_employee') && isset($userInfo['division_id'])) {
     $stats = [
-        'documents' => $pdo->query("SELECT COUNT(*) FROM documents WHERE sender_type = 'division' AND sender_id = {$userInfo['entity_id']}")->fetchColumn(),
-        'units' => $pdo->query("SELECT COUNT(*) FROM units WHERE division_id = {$userInfo['entity_id']} AND is_active = 1")->fetchColumn(),
+        'documents' => $pdo->query("SELECT COUNT(*) FROM documents WHERE sender_type = 'division' AND sender_id = {$userInfo['division_id']}")->fetchColumn(),
+        'units' => $pdo->query("SELECT COUNT(*) FROM units WHERE division_id = {$userInfo['division_id']} AND is_active = 1")->fetchColumn(),
         'reports' => $pdo->query("
             SELECT COUNT(*) 
             FROM reports r 
             JOIN units u ON r.unit_id = u.id 
-            WHERE u.division_id = {$userInfo['entity_id']}
+            WHERE u.division_id = {$userInfo['division_id']}
             AND u.is_active = 1
         ")->fetchColumn()
     ];
@@ -153,12 +144,11 @@ if ($userInfo['role'] == 'division' && isset($userInfo['entity_id'])) {
 
 // آخر الكتب حسب نوع المستخدم
 $latestDocs = [];
-switch($userInfo['role']) {
+switch($userInfo['role_name']) {
   case 'admin':
     $latestDocs = $pdo->query("
       SELECT d.*, 
              CASE 
-               WHEN d.sender_type = 'ministry' THEN (SELECT name FROM ministry_departments WHERE id = d.sender_id)
                WHEN d.sender_type = 'division' THEN (SELECT name FROM university_divisions WHERE id = d.sender_id)
                WHEN d.sender_type = 'unit' THEN (SELECT name FROM units WHERE id = d.sender_id)
              END as sender_name
@@ -169,28 +159,38 @@ switch($userInfo['role']) {
     break;
     
   default:
-    if (isset($userInfo['role']) && isset($userInfo['entity_id'])) {
-      $entityType = $userInfo['role'];
-      $entityId = $userInfo['entity_id'];
-      $latestDocs = $pdo->query("
-        SELECT d.*, 
-               CASE 
-                 WHEN d.sender_type = 'ministry' THEN (SELECT name FROM ministry_departments WHERE id = d.sender_id)
-                 WHEN d.sender_type = 'division' THEN (SELECT name FROM university_divisions WHERE id = d.sender_id)
-                 WHEN d.sender_type = 'unit' THEN (SELECT name FROM units WHERE id = d.sender_id)
-               END as sender_name
-        FROM documents d 
-        WHERE (sender_type = '$entityType' AND sender_id = $entityId)
-           OR (receiver_type = '$entityType' AND receiver_id = $entityId)
-        ORDER BY created_at DESC 
-        LIMIT 5
-      ")->fetchAll();
+    if (isset($userInfo['role_name'])) {
+      $entityType = '';
+      $entityId = null;
+      
+      if (in_array($userInfo['role_name'], ['unit_head', 'unit_employee'])) {
+        $entityType = 'unit';
+        $entityId = $userInfo['college_id'];
+      } elseif (in_array($userInfo['role_name'], ['division_head', 'division_employee'])) {
+        $entityType = 'division';
+        $entityId = $userInfo['division_id'];
+      }
+      
+      if ($entityType && $entityId) {
+        $latestDocs = $pdo->query("
+          SELECT d.*, 
+                 CASE 
+                   WHEN d.sender_type = 'division' THEN (SELECT name FROM university_divisions WHERE id = d.sender_id)
+                   WHEN d.sender_type = 'unit' THEN (SELECT name FROM units WHERE id = d.sender_id)
+                 END as sender_name
+          FROM documents d 
+          WHERE (sender_type = '$entityType' AND sender_id = $entityId)
+             OR (receiver_type = '$entityType' AND receiver_id = $entityId)
+          ORDER BY created_at DESC 
+          LIMIT 5
+        ")->fetchAll();
+      }
     }
 }
 
 // آخر التقارير حسب نوع المستخدم
 $latestReports = [];
-switch($userInfo['role']) {
+switch($userInfo['role_name']) {
   case 'admin':
     $latestReports = $pdo->query("
       SELECT r.*, u.name as unit_name 
@@ -201,28 +201,28 @@ switch($userInfo['role']) {
     ")->fetchAll();
     break;
     
-  case 'unit':
-    if (isset($userInfo['entity_id'])) {
+  case 'unit_head':
+  case 'unit_employee':
+    if (isset($userInfo['college_id'])) {
       $latestReports = $pdo->query("
         SELECT r.*, u.name as unit_name 
         FROM reports r 
         JOIN units u ON r.unit_id = u.id 
-        WHERE r.unit_id = {$userInfo['entity_id']}
+        WHERE r.unit_id = {$userInfo['college_id']}
         ORDER BY r.created_at DESC 
         LIMIT 5
       ")->fetchAll();
     }
     break;
     
-  case 'division':
-    if (isset($userInfo['entity_id'])) {
+  case 'division_head':
+  case 'division_employee':
+    if (isset($userInfo['division_id'])) {
       $latestReports = $pdo->query("
         SELECT r.*, u.name as unit_name 
         FROM reports r 
         JOIN units u ON r.unit_id = u.id 
-        JOIN users usr ON u.id = usr.entity_id 
-        WHERE usr.role = 'unit' 
-        AND usr.university_id = {$userInfo['university_id']}
+        WHERE u.division_id = {$userInfo['division_id']}
         ORDER BY r.created_at DESC 
         LIMIT 5
       ")->fetchAll();
@@ -674,18 +674,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 $roleTitle = '';
                 $entityName = '';
                 
-                switch($userInfo['role']) {
-                    case 'unit':
+                switch($userInfo['role_name']) {
+                    case 'unit_head':
                         $roleTitle = 'رئيس وحدة في';
                         $entityName = $unitInfo['college_name'] . ' - ' . $unitInfo['university_name'];
                         break;
-                    case 'division':
+                    case 'division_head':
                         $roleTitle = 'رئيس شعبة في';
                         $entityName = $userInfo['division_name'] . ' - ' . $userInfo['university_name'];
-                        break;
-                    case 'ministry':
-                        $roleTitle = 'مسؤول في';
-                        $entityName = $userInfo['department_name'];
                         break;
                     case 'admin':
                         $roleTitle = 'مدير النظام';
@@ -717,7 +713,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 
   <!-- معلومات المستخدم -->
-  <?php if ($userInfo['role'] == 'unit' && $unitInfo): ?>
+  <?php if ($userInfo['role_name'] == 'unit_head' && $unitInfo): ?>
   <div class="card unit-info-card mb-4 fade-in">
     <div class="card-header">
         <h5 class="mb-0">
@@ -787,7 +783,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <?php endif; ?>
     </div>
   </div>
-  <?php elseif ($userInfo['role'] == 'division'): ?>
+  <?php elseif ($userInfo['role_name'] == 'division_head'): ?>
   <div class="card unit-info-card mb-4 fade-in">
     <div class="card-header">
         <h5 class="mb-0">
@@ -853,22 +849,22 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 </div>
-<?php elseif ($userInfo['role'] == 'ministry'): ?>
+<?php elseif ($userInfo['role_name'] == 'admin'): ?>
   <div class="card mb-4">
     <div class="card-header bg-light">
       <h5 class="mb-0">
         <i class="fas fa-info-circle me-2"></i>
-        معلومات <?php echo getEntityTypeLabel($userInfo['role']); ?>
+        معلومات <?php echo getEntityTypeLabel($userInfo['role_name']); ?>
       </h5>
     </div>
     <div class="card-body">
       <div class="row">
-        <?php if ($userInfo['role'] == 'division' && isset($userInfo['division_name'])): ?>
+        <?php if ($userInfo['role_name'] == 'division_head' && isset($userInfo['division_name'])): ?>
           <div class="col-md-6">
             <p><strong>الشعبة:</strong> <?php echo $userInfo['division_name']; ?></p>
             <p><strong>الجامعة:</strong> <?php echo $userInfo['university_name'] ?? 'غير محدد'; ?></p>
           </div>
-        <?php elseif ($userInfo['role'] == 'ministry' && isset($userInfo['department_name'])): ?>
+        <?php elseif ($userInfo['role_name'] == 'admin' && isset($userInfo['department_name'])): ?>
           <div class="col-md-6">
             <p><strong>القسم:</strong> <?php echo $userInfo['department_name']; ?></p>
           </div>

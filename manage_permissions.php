@@ -5,32 +5,33 @@ require_once 'permissions_list.php';
 requireLogin();
 
 // التحقق من أن المستخدم مدير
-if (!isAdmin()) {
+$userInfo = getUserFullInfo($_SESSION['user_id']);
+if (!$userInfo || $userInfo['role_name'] !== 'admin') {
     logSystemActivity('محاولة وصول غير مصرح لإدارة الصلاحيات', 'security_violation', $_SESSION['user_id']);
-    header('Location: index.php');
+    header('Location: dashboard.php');
     exit('غير مصرح لك بالوصول');
 }
 
 // معالجة تحديث الصلاحيات الافتراضية للأدوار
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_default_permissions'])) {
     try {
-        $role = $_POST['role'];
+        $role_id = $_POST['role_id'];
         $permissions = $_POST['permissions'] ?? [];
         
         // حذف الصلاحيات القديمة للدور
-        $stmt = $pdo->prepare("DELETE FROM role_default_permissions WHERE role = ?");
-        $stmt->execute([$role]);
+        $stmt = $pdo->prepare("DELETE FROM role_default_permissions WHERE role_id = ?");
+        $stmt->execute([$role_id]);
         
         // إضافة الصلاحيات الجديدة
         if (!empty($permissions)) {
-            $stmt = $pdo->prepare("INSERT INTO role_default_permissions (role, permission_name) VALUES (?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO role_default_permissions (role_id, permission_name) VALUES (?, ?)");
             foreach ($permissions as $permission) {
-                $stmt->execute([$role, $permission]);
+                $stmt->execute([$role_id, $permission]);
             }
         }
         
         $_SESSION['success'] = "تم تحديث صلاحيات الدور بنجاح";
-        logSystemActivity("تم تحديث صلاحيات الدور: $role", 'permissions', $_SESSION['user_id']);
+        logSystemActivity("تم تحديث صلاحيات الدور: $role_id", 'permissions', $_SESSION['user_id']);
     } catch (Exception $e) {
         $_SESSION['error'] = "حدث خطأ أثناء تحديث الصلاحيات";
         error_log($e->getMessage());
@@ -39,19 +40,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_default_permis
 
 // جلب قائمة المستخدمين مع صلاحياتهم
 $users = $pdo->query("
-    SELECT u.id, u.username, u.full_name, u.role, GROUP_CONCAT(p.permission_name) as current_permissions
+    SELECT u.id, u.username, u.full_name, r.id as role_id, r.name as role_name, r.display_name as role_display_name,
+           GROUP_CONCAT(p.permission_name) as current_permissions
     FROM users u 
+    LEFT JOIN roles r ON u.role_id = r.id
     LEFT JOIN permissions p ON u.id = p.user_id 
-    WHERE u.role != 'admin'
-    GROUP BY u.id, u.username, u.full_name, u.role
+    WHERE r.name != 'admin'
+    GROUP BY u.id, u.username, u.full_name, r.id, r.name, r.display_name
 ")->fetchAll();
+
+// جلب قائمة الأدوار
+$roles_query = $pdo->query("SELECT id, name, display_name FROM roles ORDER BY id");
+$roles = [];
+while ($role = $roles_query->fetch()) {
+    $roles[$role['id']] = $role['display_name'];
+}
 
 include 'header.php';
 
 // تنظيم الصلاحيات حسب المجموعات
 $permissionGroups = [
     'المستندات' => array_filter($available_permissions, fn($key) => strpos($key, 'document') !== false, ARRAY_FILTER_USE_KEY),
-    'الجامعات' => array_filter($available_permissions, fn($key) => strpos($key, 'university') !== false, ARRAY_FILTER_USE_KEY),
     'الكليات' => array_filter($available_permissions, fn($key) => strpos($key, 'college') !== false, ARRAY_FILTER_USE_KEY),
     'الشعب' => array_filter($available_permissions, fn($key) => strpos($key, 'division') !== false, ARRAY_FILTER_USE_KEY),
     'الوحدات' => array_filter($available_permissions, fn($key) => strpos($key, 'unit') !== false, ARRAY_FILTER_USE_KEY),
@@ -63,15 +72,6 @@ $permissionGroups = [
         strpos($key, 'permission') !== false
     , ARRAY_FILTER_USE_KEY),
 ];
-
-$roles = [
-    'admin' => 'مدير النظام',
-    'ministry' => 'قسم الوزارة',
-    'division' => 'رئيس شعبة',
-    'unit' => 'رئيس وحدة'
-];
-
-$roleLabels = $roles; // للاستخدام في عرض الأدوار
 ?>
 
 <style>
@@ -374,63 +374,51 @@ body {
 
     <div class="permissions-container">
         <ul class="nav nav-tabs" id="permissionTabs" role="tablist">
-            <?php foreach ($roles as $roleKey => $roleLabel): ?>
+            <?php foreach ($roles as $role_id => $role_display_name): ?>
             <li class="nav-item" role="presentation">
-                <button class="nav-link <?php echo $roleKey === 'admin' ? 'active' : ''; ?>" 
-                        id="<?php echo $roleKey; ?>-tab" 
+                <button class="nav-link <?php echo $role_id === 1 ? 'active' : ''; ?>" 
+                        id="role<?php echo $role_id; ?>-tab" 
                         data-bs-toggle="tab" 
-                        data-bs-target="#<?php echo $roleKey; ?>-pane" 
+                        data-bs-target="#role<?php echo $role_id; ?>-pane" 
                         type="button" 
                         role="tab">
-                    <i class="fas <?php echo getRoleIcon($roleKey); ?> ml-2"></i>
-                    <?php echo $roleLabel; ?>
+                    <i class="fas <?php echo getRoleIcon($role_id); ?> ml-2"></i>
+                    <?php echo $role_display_name; ?>
                 </button>
             </li>
             <?php endforeach; ?>
         </ul>
 
         <div class="tab-content" id="permissionTabsContent">
-            <?php foreach ($roles as $roleKey => $roleLabel): ?>
-            <div class="tab-pane fade <?php echo $roleKey === 'admin' ? 'show active' : ''; ?>" 
-                 id="<?php echo $roleKey; ?>-pane" 
+            <?php foreach ($roles as $role_id => $role_display_name): ?>
+            <div class="tab-pane fade <?php echo $role_id === 1 ? 'show active' : ''; ?>" 
+                 id="role<?php echo $role_id; ?>-pane" 
                  role="tabpanel">
                 <form method="POST" class="permission-form">
                     <input type="hidden" name="update_default_permissions" value="1">
-                    <input type="hidden" name="role" value="<?php echo $roleKey; ?>">
+                    <input type="hidden" name="role_id" value="<?php echo $role_id; ?>">
 
                     <?php foreach ($permissionGroups as $groupName => $permissions): ?>
                     <div class="permission-card">
                         <div class="card-header">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0">
-                                    <i class="fas <?php echo getGroupIcon($groupName); ?> ml-2"></i>
-                                    <?php echo $groupName; ?>
-                                </h6>
-                                <div class="form-check">
-                                    <input type="checkbox" 
-                                           class="form-check-input select-all" 
-                                           data-group="<?php echo $roleKey; ?>-<?php echo str_replace(' ', '-', $groupName); ?>">
-                                    <label class="form-check-label">تحديد الكل</label>
-                                </div>
-                            </div>
+                            <h6 class="mb-0">
+                                <i class="fas <?php echo getGroupIcon($groupName); ?> ml-2"></i>
+                                <?php echo $groupName; ?>
+                            </h6>
                         </div>
                         <div class="permission-group">
-                            <div class="row">
-                                <?php foreach ($permissions as $key => $label): ?>
-                                <div class="col-md-6">
-                                    <div class="form-check">
-                                        <input type="checkbox" 
-                                               name="permissions[]" 
-                                               value="<?php echo $key; ?>" 
-                                               class="form-check-input <?php echo $roleKey; ?>-<?php echo str_replace(' ', '-', $groupName); ?>"
-                                               <?php echo in_array($key, getRolePermissions($roleKey)) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label">
-                                            <?php echo $label; ?>
-                                        </label>
-                                    </div>
-                                </div>
-                                <?php endforeach; ?>
+                            <?php foreach ($permissions as $key => $label): ?>
+                            <div class="form-check">
+                                <input type="checkbox" 
+                                       name="permissions[]" 
+                                       value="<?php echo $key; ?>" 
+                                       class="form-check-input"
+                                       <?php echo in_array($key, getUserRolePermissions($role_id)) ? 'checked' : ''; ?>>
+                                <label class="form-check-label">
+                                    <?php echo $label; ?>
+                                </label>
                             </div>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                     <?php endforeach; ?>
@@ -438,7 +426,7 @@ body {
                     <div class="text-end mt-4">
                         <button type="submit" class="btn btn-save">
                             <i class="fas fa-save ml-2"></i>
-                            حفظ صلاحيات <?php echo $roleLabel; ?>
+                            حفظ صلاحيات <?php echo $role_display_name; ?>
                         </button>
                     </div>
                 </form>
@@ -473,8 +461,8 @@ body {
                             </div>
                         </td>
                         <td>
-                            <span class="badge bg-<?php echo getRoleBadgeColor($user['role']); ?>">
-                                <?php echo $roleLabels[$user['role']] ?? $user['role']; ?>
+                            <span class="badge bg-<?php echo getRoleBadgeColor($user['role_name']); ?>">
+                                <?php echo $user['role_display_name']; ?>
                             </span>
                         </td>
                         <td>
@@ -501,14 +489,22 @@ body {
                                 </div>
                                 <div class="modal-body">
                                     <?php 
-                                    $userRolePermissions = getRolePermissions($user['role']);
-                                    foreach ($userRolePermissions as $permission): 
+                                    $userRolePermissions = getUserRolePermissions($user['role_id']);
+                                    if (!empty($userRolePermissions)): 
+                                        foreach ($userRolePermissions as $permission): 
                                     ?>
                                     <div class="permission-list-item">
                                         <i class="fas fa-check-circle permission-icon"></i>
                                         <?php echo $available_permissions[$permission] ?? $permission; ?>
                                     </div>
-                                    <?php endforeach; ?>
+                                    <?php 
+                                        endforeach;
+                                    else:
+                                    ?>
+                                    <div class="alert alert-info">
+                                        لا توجد صلاحيات محددة لهذا المستخدم
+                                    </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>

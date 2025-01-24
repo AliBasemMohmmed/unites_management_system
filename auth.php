@@ -5,15 +5,10 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once 'config.php';
 
-// دالة التحقق من أن المستخدم مدير
-function isAdmin() {
-    return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
-}
-
 function requireLogin() {
     if (!isset($_SESSION['user_id'])) {
         header('Location: login.php');
-        exit;
+        exit('يجب تسجيل الدخول للوصول إلى هذه الصفحة');
     }
 }
 
@@ -121,5 +116,12 @@ function setUserEntityInfo($userId) {
         $_SESSION['entity_id'] = $userId;
         $_SESSION['user_role'] = 'user';
     }
+}
+
+function logout() {
+    session_unset();
+    session_destroy();
+    header('Location: login.php');
+    exit();
 }
 ?>

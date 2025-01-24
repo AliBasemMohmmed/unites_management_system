@@ -132,55 +132,65 @@ function sendNotification($userId, $title, $message, $type = 'info') {
  * دالة لتنسيق حالة الكتاب مع الألوان
  */
 function getStatusClass($status) {
-    $classes = [
-        'draft' => 'bg-secondary',
-        'pending' => 'bg-warning',
-        'sent' => 'bg-info',
-        'received' => 'bg-primary',
-        'processed' => 'bg-success',
-        'archived' => 'bg-dark'
-    ];
-    return $classes[$status] ?? 'bg-secondary';
+    switch ($status) {
+        case 'pending':
+            return 'bg-warning';
+        case 'approved':
+            return 'bg-success';
+        case 'rejected':
+            return 'bg-danger';
+        case 'archived':
+            return 'bg-secondary';
+        default:
+            return 'bg-primary';
+    }
 }
 
 /**
  * دالة لتحويل حالة الكتاب إلى نص عربي
  */
 function getStatusLabel($status) {
-    $labels = [
-        'draft' => 'مسودة',
-        'pending' => 'قيد الإرسال',
-        'sent' => 'تم الإرسال',
-        'received' => 'تم الاستلام',
-        'processed' => 'تمت المعالجة',
-        'archived' => 'مؤرشف'
-    ];
-    return $labels[$status] ?? $status;
+    switch ($status) {
+        case 'pending':
+            return 'قيد الانتظار';
+        case 'approved':
+            return 'تمت الموافقة';
+        case 'rejected':
+            return 'مرفوض';
+        case 'archived':
+            return 'مؤرشف';
+        default:
+            return 'جديد';
+    }
 }
 
 /**
  * دالة لتحويل التاريخ إلى صيغة "منذ..."
  */
-function timeAgo($datetime) {
-    if (!$datetime) return '';
+function timeAgo($timestamp) {
+    $time = strtotime($timestamp);
+    $current = time();
+    $diff = $current - $time;
     
-    $now = new DateTime();
-    $ago = new DateTime($datetime);
-    $diff = $now->diff($ago);
-
-    if ($diff->y > 0) {
-        return "منذ " . $diff->y . " سنة";
-    } elseif ($diff->m > 0) {
-        return "منذ " . $diff->m . " شهر";
-    } elseif ($diff->d > 0) {
-        return "منذ " . $diff->d . " يوم";
-    } elseif ($diff->h > 0) {
-        return "منذ " . $diff->h . " ساعة";
-    } elseif ($diff->i > 0) {
-        return "منذ " . $diff->i . " دقيقة";
-    } else {
-        return "منذ لحظات";
+    $intervals = [
+        31536000 => 'سنة',
+        2592000 => 'شهر',
+        604800 => 'أسبوع',
+        86400 => 'يوم',
+        3600 => 'ساعة',
+        60 => 'دقيقة',
+        1 => 'ثانية'
+    ];
+    
+    foreach ($intervals as $secs => $str) {
+        $d = $diff / $secs;
+        if ($d >= 1) {
+            $r = round($d);
+            return 'منذ ' . $r . ' ' . $str . ($r > 1 ? ($str == 'شهر' ? 'أشهر' : 'ات') : '');
+        }
     }
+    
+    return 'الآن';
 }
 
 /**
@@ -346,13 +356,21 @@ function isUserInEntity($userId, $entityType, $entityId) {
 /**
  * دالة لتحويل نوع الجهة إلى نص عربي
  */
-function getEntityTypeLabel($type) {
-    $labels = [
-        'ministry' => 'قسم الوزارة',
-        'division' => 'شعبة',
-        'unit' => 'وحدة'
-    ];
-    return $labels[$type] ?? $type;
+function getEntityTypeLabel($role) {
+    switch ($role) {
+        case 'admin':
+            return 'مدير النظام';
+        case 'unit_head':
+            return 'رئيس وحدة';
+        case 'unit_employee':
+            return 'موظف وحدة';
+        case 'division_head':
+            return 'رئيس شعبة';
+        case 'division_employee':
+            return 'موظف شعبة';
+        default:
+            return 'مستخدم';
+    }
 }
 
 function addNotification($userId, $title, $message, $type = 'info') {
@@ -377,81 +395,99 @@ function getUserFullInfo($userId) {
     
     try {
         $stmt = $pdo->prepare("
-            SELECT u.*,
-                   un.name as university_name,
-                   c.name as college_name,
-                   CASE 
-                     WHEN u.role = 'ministry' THEN (SELECT name FROM ministry_departments WHERE id = u.entity_id)
-                     WHEN u.role = 'division' THEN (SELECT name FROM university_divisions WHERE id = u.entity_id)
-                     WHEN u.role = 'unit' THEN (SELECT name FROM units WHERE id = u.entity_id)
-                   END as entity_name
+            SELECT 
+                u.id,
+                u.username,
+                u.full_name,
+                u.email,
+                u.college_id,
+                u.role_id,
+                u.created_at,
+                u.last_login,
+                u.updated_at,
+                r.name as role_name,
+                r.display_name as role_display_name,
+                c.name as college_name
             FROM users u
-            LEFT JOIN universities un ON u.university_id = un.id
+            LEFT JOIN roles r ON u.role_id = r.id
             LEFT JOIN colleges c ON u.college_id = c.id
             WHERE u.id = ?
         ");
-        $stmt->execute([$userId]);
-        $userInfo = $stmt->fetch();
         
-        if ($userInfo) {
-            // إضافة المعرفات حسب نوع المستخدم
-            switch($userInfo['role']) {
-                case 'ministry':
-                    $userInfo['department_id'] = $userInfo['entity_id'];
-                    $userInfo['department_name'] = $userInfo['entity_name'];
-                    break;
-                case 'division':
-                    $userInfo['division_id'] = $userInfo['entity_id'];
-                    $userInfo['division_name'] = $userInfo['entity_name'];
-                    break;
-                case 'unit':
-                    $userInfo['unit_id'] = $userInfo['entity_id'];
-                    $userInfo['unit_name'] = $userInfo['entity_name'];
-                    break;
-            }
+        $stmt->execute([$userId]);
+        $userInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$userInfo) {
+            error_log("لم يتم العثور على المستخدم: " . $userId);
+            return false;
+        }
+        
+        // تحديث آخر دخول
+        $updateStmt = $pdo->prepare("
+            UPDATE users 
+            SET last_login = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ");
+        $updateStmt->execute([$userId]);
+        
+        // إضافة معلومات الدور
+        if ($userInfo['role_name'] === 'admin') {
+            $userInfo['permissions'] = ['*']; // منح جميع الصلاحيات للمدير
+            $userInfo['role_label'] = 'مدير النظام';
+        } else {
+            $userInfo['permissions'] = getUserRolePermissions($userInfo['role_id']);
+            $userInfo['role_label'] = getEntityTypeLabel($userInfo['role_name']);
         }
         
         return $userInfo;
     } catch (PDOException $e) {
         error_log("خطأ في جلب معلومات المستخدم: " . $e->getMessage());
-        return null;
+        return false;
     }
 }
 
 /**
- * دالة للحصول على نص الترحيب حسب نوع المستخدم
+ * دالة للحصول على رسالة الترحيب
  */
 function getWelcomeMessage($userInfo) {
-    if (!$userInfo) return "مرحباً بك في النظام";
+    $timeOfDay = date('H');
+    $greeting = '';
     
-    $welcome = "مرحباً بك ";
-    $welcome .= $userInfo['full_name'];
-    
-    switch ($userInfo['role']) {
-        case 'admin':
-            $welcome .= " - مدير النظام";
-            break;
-        case 'unit':
-            $welcome .= " - رئيس وحدة " . ($userInfo['unit_name'] ?? '');
-            if (!empty($userInfo['college_name'])) {
-                $welcome .= " في " . $userInfo['college_name'];
-            }
-            if (!empty($userInfo['university_name'])) {
-                $welcome .= " - " . $userInfo['university_name'];
-            }
-            break;
-        case 'division':
-            $welcome .= " - رئيس شعبة " . ($userInfo['division_name'] ?? '');
-            if (!empty($userInfo['university_name'])) {
-                $welcome .= " في " . $userInfo['university_name'];
-            }
-            break;
-        case 'ministry':
-            $welcome .= " - " . ($userInfo['department_name'] ?? 'قسم الوزارة');
-            break;
+    if ($timeOfDay < 12) {
+        $greeting = 'صباح الخير';
+    } elseif ($timeOfDay < 17) {
+        $greeting = 'مساء الخير';
+    } else {
+        $greeting = 'مساء الخير';
     }
     
-    return $welcome;
+    $roleName = '';
+    switch ($userInfo['role_name']) {
+        case 'admin':
+            $roleName = 'مدير النظام';
+            break;
+        case 'unit_head':
+            $roleName = 'رئيس وحدة';
+            break;
+        case 'unit_employee':
+            $roleName = 'موظف وحدة';
+            break;
+        case 'division_head':
+            $roleName = 'رئيس شعبة';
+            break;
+        case 'division_employee':
+            $roleName = 'موظف شعبة';
+            break;
+        default:
+            $roleName = 'مستخدم';
+    }
+    
+    $message = $greeting . '، ' . $userInfo['full_name'];
+    if ($roleName) {
+        $message .= ' (' . $roleName . ')';
+    }
+    
+    return $message;
 }
 
 function getDefaultPermissions($role) {
@@ -478,14 +514,18 @@ function getDefaultPermissions($role) {
 /**
  * دالة لجلب الصلاحيات الافتراضية لكل دور
  */
-function getRolePermissions($role) {
+function getUserRolePermissions($role_id) {
     global $pdo;
     try {
-        $stmt = $pdo->prepare("SELECT permission_name FROM role_default_permissions WHERE role = ?");
-        $stmt->execute([$role]);
+        $stmt = $pdo->prepare("
+            SELECT permission_name 
+            FROM role_default_permissions 
+            WHERE role_id = ?
+        ");
+        $stmt->execute([$role_id]);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        error_log("خطأ في جلب صلاحيات الدور: " . $e->getMessage());
         return [];
     }
 }
@@ -494,15 +534,41 @@ function getRolePermissions($role) {
  * دالة للتحقق من صلاحيات المستخدم
  */
 function hasPermission($permission) {
-    // إذا كان المستخدم مدير النظام
-    if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
-        return true;
+    global $pdo;
+    
+    if (!isset($_SESSION['user_id'])) {
+        return false;
     }
     
-    // الحصول على صلاحيات دور المستخدم
-    $rolePermissions = getRolePermissions($_SESSION['user_role'] ?? '');
-    
-    return in_array($permission, $rolePermissions);
+    try {
+        $stmt = $pdo->prepare("
+            SELECT 
+                u.role_id,
+                r.name as role_name
+            FROM users u
+            JOIN roles r ON u.role_id = r.id
+            WHERE u.id = ?
+        ");
+        $stmt->execute([$_SESSION['user_id']]);
+        $userRole = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$userRole) {
+            return false;
+        }
+        
+        // إذا كان المستخدم مدير نظام
+        if ($userRole['role_name'] === 'admin') {
+            return true; // المدير لديه جميع الصلاحيات
+        }
+        
+        // للأدوار الأخرى
+        $permissions = getUserRolePermissions($userRole['role_id']);
+        return in_array($permission, $permissions);
+        
+    } catch (PDOException $e) {
+        error_log("خطأ في التحقق من الصلاحيات: " . $e->getMessage());
+        return false;
+    }
 }
 
 /**
@@ -517,7 +583,7 @@ function applyRolePermissions($userId, $role) {
         $stmt->execute([$userId]);
         
         // إضافة الصلاحيات الجديدة
-        $permissions = getRolePermissions($role);
+        $permissions = getUserRolePermissions($role);
         if (!empty($permissions)) {
             $stmt = $pdo->prepare("INSERT INTO permissions (user_id, permission_name) VALUES (?, ?)");
             foreach ($permissions as $permission) {
@@ -602,5 +668,28 @@ function generateUniqueDocumentId() {
     } while ($exists > 0);
     
     return $documentId;
+}
+
+function isAdmin() {
+    if (!isset($_SESSION['user_id'])) {
+        return false;
+    }
+    
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare("
+            SELECT r.name as role_name 
+            FROM users u 
+            JOIN roles r ON u.role_id = r.id 
+            WHERE u.id = ?
+        ");
+        $stmt->execute([$_SESSION['user_id']]);
+        $result = $stmt->fetch();
+        
+        return $result && $result['role_name'] === 'admin';
+    } catch (PDOException $e) {
+        error_log("خطأ في التحقق من صلاحيات المدير: " . $e->getMessage());
+        return false;
+    }
 }
 ?>

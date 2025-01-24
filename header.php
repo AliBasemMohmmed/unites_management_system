@@ -7,6 +7,16 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+// جلب معلومات المستخدم ودوره
+$stmt = $pdo->prepare("
+    SELECT u.*, r.name as role_name, r.display_name as role_display_name 
+    FROM users u 
+    JOIN roles r ON u.role_id = r.id 
+    WHERE u.id = ?
+");
+$stmt->execute([$_SESSION['user_id']]);
+$userInfo = $stmt->fetch();
+
 // جلب عدد الإشعارات غير المقروءة
 $unreadNotifications = 0;
 try {
@@ -258,62 +268,55 @@ try {
 
             <!-- القائمة الرئيسية -->
             <ul class="navbar-nav me-auto">
-             
-   <?php if (hasPermission('manage_divisions')): ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="divisions.php">
-                        <i class="fas fa-layer-group me-1"></i>الشعب
-                    </a>
-                </li>
-                <?php endif; ?>
-                
-                <?php if (hasPermission('manage_colleges')): ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="colleges.php">
-                        <i class="fas fa-building me-1"></i>الكليات
-                    </a>
-                </li>
-                <?php endif; ?>
+                <?php if ($userInfo['role_name'] == 'admin'): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="divisions.php">
+                            <i class="fas fa-layer-group me-1"></i>الشعب
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="colleges.php">
+                            <i class="fas fa-building me-1"></i>الكليات
+                        </a>
+                    </li>
 
-             
-
-                <?php if (hasPermission('manage_units')): ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="units.php">
-                        <i class="fas fa-boxes me-1"></i>الوحدات
-                    </a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="units.php">
+                            <i class="fas fa-boxes me-1"></i>الوحدات
+                        </a>
+                    </li>
                 <?php endif; ?>
 
-                <!-- قائمة الكتب والمراسلات -->
-                <?php if (hasPermission('view_documents')): ?>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                        <i class="fas fa-file-alt me-1"></i>الكتب والمراسلات
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="documents.php">عرض الكتب</a></li>
-                        <?php if (hasPermission('create_documents')): ?>
-                        <li><a class="dropdown-item" href="process_document.php">إضافة كتاب جديد</a></li>
-                        <?php endif; ?>
-                        <li><a class="dropdown-item" href="document_workflow.php">تدفق الكتب</a></li>
-                        <li><a class="dropdown-item" href="archive.php">الأرشيف</a></li>
-                    </ul>
-                </li>
-                <?php endif; ?>
+                <?php if (in_array($userInfo['role_name'], ['unit_head', 'unit_employee', 'division_head', 'division_employee', 'admin'])): ?>
+                    <!-- قائمة الكتب والمراسلات -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-file-alt me-1"></i>الكتب والمراسلات
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="documents.php">عرض الكتب</a></li>
+                            <?php if (in_array($userInfo['role_name'], ['unit_head', 'division_head', 'admin'])): ?>
+                                <li><a class="dropdown-item" href="process_document.php">إضافة كتاب جديد</a></li>
+                            <?php endif; ?>
+                            <li><a class="dropdown-item" href="document_workflow.php">تدفق الكتب</a></li>
+                            <li><a class="dropdown-item" href="archive.php">الأرشيف</a></li>
+                        </ul>
+                    </li>
 
-                <!-- قائمة التقارير -->
-                <?php if (hasPermission('view_reports')): ?>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                        <i class="fas fa-chart-bar me-1"></i>التقارير
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="reports.php">التقارير العامة</a></li>
-                        <li><a class="dropdown-item" href="advanced_reports.php">التقارير المتقدمة</a></li>
-                        <li><a class="dropdown-item" href="statistics.php">الإحصائيات</a></li>
-                    </ul>
-                </li>
+                    <!-- قائمة التقارير -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-chart-bar me-1"></i>التقارير
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="reports.php">التقارير العامة</a></li>
+                            <?php if (in_array($userInfo['role_name'], ['unit_head', 'division_head', 'admin'])): ?>
+                                <li><a class="dropdown-item" href="advanced_reports.php">التقارير المتقدمة</a></li>
+                            <?php endif; ?>
+                            <li><a class="dropdown-item" href="statistics.php">الإحصائيات</a></li>
+                        </ul>
+                    </li>
                 <?php endif; ?>
             </ul>
 
@@ -385,15 +388,15 @@ try {
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                         <i class="fas fa-user-circle me-1"></i>
-                        <?php echo htmlspecialchars($_SESSION['user_name']); ?>
+                        <?php echo htmlspecialchars($userInfo['full_name']); ?>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="profile.php">
                             <i class="fas fa-user me-2"></i>الملف الشخصي
                         </a></li>
                         
-                        <?php if (hasPermission('access_admin_dashboard')): ?>
-                        <li><hr class="dropdown-divider"></li>
+                        <?php if ($userInfo['role_name'] == 'admin'): ?>
+                            <li><hr class="dropdown-divider"></li>
                         <li><h6 class="dropdown-header">إدارة النظام</h6></li>
                         <li><a class="dropdown-item" href="admin_dashboard.php">
                             <i class="fas fa-tachometer-alt me-2"></i>لوحة التحكم
@@ -410,8 +413,6 @@ try {
                         <li><a class="dropdown-item" href="backup.php">
                             <i class="fas fa-database me-2"></i>النسخ الاحتياطي
                         </a></li>
-                        <?php endif; ?>
-
                         <li><hr class="dropdown-divider"></li>
                         <li><h6 class="dropdown-header">الأدوات</h6></li>
                         <li><a class="dropdown-item" href="reminders.php">
@@ -423,16 +424,24 @@ try {
                         <li><a class="dropdown-item" href="users.php">
                             <i class="fas fa-users me-2"></i>المستخدمين
                         </a></li>
-                        <?php if (hasPermission('export_data')): ?>
                         <li><a class="dropdown-item" href="export.php">
                             <i class="fas fa-file-export me-2"></i>تصدير البيانات
                         </a></li>
                         <?php endif; ?>
+
+                        <!-- <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">الأدوات</h6></li>
+                        <li><a class="dropdown-item" href="reminders.php">
+                            <i class="fas fa-clock me-2"></i>التذكيرات
+                        </a></li>
+                        <li><a class="dropdown-item" href="settings.php">
+                            <i class="fas fa-cog me-2"></i>الإعدادات
+                        </a></li>
                         
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="logout.php">
                             <i class="fas fa-sign-out-alt me-2"></i>تسجيل الخروج
-                        </a></li>
+                        </a></li> -->
                     </ul>
                 </li>
             </ul>
