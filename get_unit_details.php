@@ -18,13 +18,11 @@ try {
     $stmt = $pdo->prepare("
         SELECT 
             u.*,
-            un.name as university_name,
             c.name as college_name,
-            d.name as division_name
+            m.full_name as manager_name
         FROM units u
-        LEFT JOIN universities un ON u.university_id = un.id
         LEFT JOIN colleges c ON u.college_id = c.id
-        LEFT JOIN university_divisions d ON u.division_id = d.id
+        LEFT JOIN users m ON u.user_id = m.id
         WHERE u.id = ?
     ");
     $stmt->execute([$unitId]);
@@ -36,18 +34,26 @@ try {
         exit;
     }
 
-    // جلب قائمة الجامعات
-    $universities = $pdo->query("SELECT id, name FROM universities ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
-
-    // جلب الكليات التابعة للجامعة
-    $stmt = $pdo->prepare("SELECT id, name FROM colleges WHERE university_id = ? ORDER BY name");
-    $stmt->execute([$unit['university_id']]);
+    // جلب قائمة الكليات
+    $stmt = $pdo->prepare("
+        SELECT id, name 
+        FROM colleges 
+        ORDER BY name
+    ");
+    $stmt->execute();
     $colleges = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // جلب الشعب التابعة للجامعة
-    $stmt = $pdo->prepare("SELECT id, name FROM university_divisions WHERE university_id = ? ORDER BY name");
-    $stmt->execute([$unit['university_id']]);
-    $divisions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // جلب قائمة المستخدمين المتاحين كمدراء للوحدة
+    $stmt = $pdo->prepare("
+        SELECT 
+            u.id,
+            u.full_name
+        FROM users u
+        WHERE u.role_id = 2
+        ORDER BY u.full_name
+    ");
+    $stmt->execute();
+    $managers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // تجهيز البيانات للإرجاع
     $response = [
@@ -55,13 +61,13 @@ try {
         'id' => $unit['id'],
         'name' => $unit['name'],
         'description' => $unit['description'],
-        'university_id' => $unit['university_id'],
         'college_id' => $unit['college_id'],
-        'division_id' => $unit['division_id'],
+        'user_id' => $unit['user_id'],
         'is_active' => $unit['is_active'],
-        'universities' => $universities,
         'colleges' => $colleges,
-        'divisions' => $divisions
+        'managers' => $managers,
+        'college_name' => $unit['college_name'],
+        'manager_name' => $unit['manager_name']
     ];
 
     echo json_encode($response);

@@ -3,6 +3,59 @@ require_once 'functions.php';
 require_once 'auth.php';
 requireLogin();
 
+// إزالة عمود division_id من جدول الوحدات
+try {
+    $pdo->exec("ALTER TABLE units DROP FOREIGN KEY IF EXISTS fk_units_division");
+    $pdo->exec("ALTER TABLE units DROP COLUMN IF EXISTS division_id");
+} catch (PDOException $e) {
+    error_log("خطأ في إزالة عمود division_id: " . $e->getMessage());
+}
+
+// إنشاء جدول الوحدات إذا لم يكن موجوداً
+try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS units (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            name VARCHAR(255) NOT NULL,
+            university_id INT,
+            description TEXT,
+            college_id INT,
+            user_id INT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
+            updated_by INT,
+            created_by INT,
+            is_active TINYINT(1) DEFAULT 1,
+            FOREIGN KEY (university_id) REFERENCES universities(id) ON DELETE SET NULL,
+            FOREIGN KEY (college_id) REFERENCES colleges(id) ON DELETE SET NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+            FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+            FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+} catch (PDOException $e) {
+    error_log("خطأ في إنشاء جدول الوحدات: " . $e->getMessage());
+}
+
+// إضافة بيانات تجريبية إذا كان الجدول فارغاً
+try {
+    $stmt = $pdo->query("SELECT COUNT(*) FROM units");
+    $count = $stmt->fetchColumn();
+    
+    if ($count == 0) {
+        $pdo->exec("
+            INSERT INTO units (name, college_id, description, user_id, is_active, created_by, created_at) 
+            VALUES 
+            ('وحدة الحاسب الآلي', 1, 'وحدة متخصصة في علوم الحاسب', 1, 1, 1, NOW()),
+            ('وحدة الرياضيات', 1, 'وحدة متخصصة في الرياضيات', 2, 1, 1, NOW()),
+            ('وحدة اللغة العربية', 2, 'وحدة متخصصة في اللغة العربية', 3, 1, 1, NOW())
+        ");
+        error_log("تم إضافة بيانات تجريبية للوحدات");
+    }
+} catch (PDOException $e) {
+    error_log("خطأ في إضافة البيانات التجريبية: " . $e->getMessage());
+}
+
 // تعريف متغيرات دور المستخدم ونوع الكيان
 $userRole = $_SESSION['user_role'] ?? null;
 $roleId = $_SESSION['role_id'] ?? null;
@@ -44,6 +97,10 @@ try {
     error_log("خطأ في جلب نوع الكيان للمستخدم: " . $e->getMessage());
 }
 
+// تحميل الكليات المتاحة
+$collegesQuery = $pdo->query("SELECT id, name FROM colleges ORDER BY name");
+$colleges = $collegesQuery->fetchAll(PDO::FETCH_ASSOC);
+
 include 'header.php';
 ?>
 
@@ -68,6 +125,8 @@ include 'header.php';
     .card {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         animation: slideIn 0.5s ease-out;
+        border-radius: 15px;
+        overflow: hidden;
     }
     
     .card:hover {
@@ -97,7 +156,33 @@ include 'header.php';
         position: relative;
         background-color: rgba(0,123,255,0.05);
     }
+
+    .table th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+    }
     
+    .search-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .search-box input {
+        padding-right: 30px;
+        border-radius: 20px;
+        border: 1px solid #ddd;
+        transition: all 0.3s ease;
+    }
+
+    .search-box input:focus {
+        box-shadow: 0 0 10px rgba(0,123,255,0.2);
+        border-color: #80bdff;
+        width: 300px;
+    }
+
     @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
@@ -120,76 +205,120 @@ include 'header.php';
         to { transform: scale(1); opacity: 1; }
     }
 
-    /* تأثيرات إضافية للعناصر */
+    .filter-dropdown {
+        min-width: 150px;
+    }
+
+    .stats-container {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        flex: 1;
+        padding: 15px;
+        border-radius: 10px;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .stat-number {
+        font-size: 24px;
+        font-weight: bold;
+        color: #007bff;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    /* تحسينات إضافية */
+    .modal-content {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .modal-footer {
+        background-color: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+    }
+
     .form-control, .form-select {
+        border-radius: 10px;
         transition: all 0.3s ease;
     }
 
     .form-control:focus, .form-select:focus {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,123,255,0.1);
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.15);
+        border-color: #80bdff;
     }
 
     .alert {
-        animation: slideIn 0.5s ease-out;
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
-    .modal.fade .modal-dialog {
-        transition: transform 0.3s ease-out;
-        transform: scale(0.9);
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,123,255,0.2);
     }
 
-    .modal.show .modal-dialog {
-        transform: scale(1);
+    .btn-primary:hover {
+        background-color: #0056b3;
+        box-shadow: 0 4px 8px rgba(0,123,255,0.3);
     }
 
-    /* أنماط إضافية لمربع البحث */
-    .search-box {
-        position: relative;
+    .btn-danger {
+        background-color: #dc3545;
+        border: none;
+        box-shadow: 0 2px 4px rgba(220,53,69,0.2);
     }
 
-    .search-box input {
-        padding-right: 30px;
-        border-radius: 20px;
-        border: 1px solid #ddd;
-        transition: all 0.3s ease;
-    }
-
-    .search-box input:focus {
-        box-shadow: 0 0 10px rgba(0,123,255,0.2);
-        border-color: #80bdff;
-        width: 300px;
-    }
-
-    /* تحسين مظهر الجدول */
-    .table {
-        margin-bottom: 0;
-    }
-
-    .table th {
-        background-color: #f8f9fa;
-        border-bottom: 2px solid #dee2e6;
-    }
-
-    .table td {
-        vertical-align: middle;
-    }
-
-    /* تأثير حركي للبحث */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
+    .btn-danger:hover {
+        background-color: #c82333;
+        box-shadow: 0 4px 8px rgba(220,53,69,0.3);
     }
 </style>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="bounce-in">إدارة الوحدات</h2>
-        <?php if ($userRole === 'admin' || ($userEntityType === 'division' && hasPermission('add_unit'))): ?>
+        <?php if ($userRole === 'admin' || $permission['has_permission'] > 0): ?>
         <button type="button" class="btn btn-primary rounded-pill" onclick="showAddUnitModal()">
             <i class="fas fa-plus-circle me-2"></i>إضافة وحدة جديدة
         </button>
         <?php endif; ?>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-number" id="totalUnits">0</div>
+            <div class="stat-label">إجمالي الوحدات</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="activeUnits">0</div>
+            <div class="stat-label">الوحدات النشطة</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="recentlyAdded">0</div>
+            <div class="stat-label">أضيفت حديثاً</div>
+        </div>
     </div>
 
     <?php if (isset($_SESSION['success'])): ?>
@@ -209,6 +338,12 @@ include 'header.php';
             <div class="d-flex justify-content-between align-items-center">
                 <span>الوحدات الحالية</span>
                 <div class="search-box">
+                    <select class="form-select form-select-sm filter-dropdown" id="sortFilter">
+                        <option value="name_asc">الاسم (تصاعدي)</option>
+                        <option value="name_desc">الاسم (تنازلي)</option>
+                        <option value="date_asc">التاريخ (الأقدم)</option>
+                        <option value="date_desc" selected>التاريخ (الأحدث)</option>
+                    </select>
                     <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="بحث..." style="width: 250px;">
                 </div>
             </div>
@@ -220,9 +355,10 @@ include 'header.php';
                         <tr>
                             <th>#</th>
                             <th>اسم الوحدة</th>
-                            <th>الجامعة</th>
+                            <th>الكلية</th>
                             <th>الوصف</th>
                             <th>مدير الوحدة</th>
+                            <th>حالة الوحدة</th>
                             <th>تاريخ الإضافة</th>
                             <th>الإجراءات</th>
                         </tr>
@@ -230,82 +366,122 @@ include 'header.php';
                     <tbody>
                         <?php
                         try {
+                            // تسجيل معلومات التصحيح
+                            error_log("دور المستخدم: " . $userRole);
+                            error_log("معرف المستخدم: " . $_SESSION['user_id']);
+
+                            // التحقق من صلاحيات المستخدم
                             if ($userRole === 'admin') {
-                                $stmt = $pdo->query("
-                                    SELECT u.*, un.name as university_name,
-                                           COALESCE(creator.full_name, 'غير معروف') as created_by_name,
-                                           COALESCE(updater.full_name, 'غير معروف') as updated_by_name,
-                                           COALESCE(users.full_name, 'غير معين') as unit_manager_name,
-                                           u.user_id
+                                $query = "
+                                    SELECT 
+                                        u.*,
+                                        c.name as college_name,
+                                        COALESCE(us.full_name, 'غير معين') as unit_manager_name,
+                                        cr.full_name as created_by_name
                                     FROM units u 
-                                    LEFT JOIN universities un ON u.university_id = un.id 
-                                    LEFT JOIN users creator ON u.created_by = creator.id
-                                    LEFT JOIN users updater ON u.updated_by = updater.id
-                                    LEFT JOIN users ON u.user_id = users.id
-                                    ORDER BY u.id DESC
-                                ");
-                                
-                                if (!$stmt) {
-                                    throw new PDOException("فشل في تنفيذ الاستعلام");
-                                }
-                                
+                                    LEFT JOIN colleges c ON u.college_id = c.id
+                                    LEFT JOIN users us ON u.user_id = us.id
+                                    LEFT JOIN users cr ON u.created_by = cr.id
+                                    ORDER BY u.created_at DESC
+                                ";
+                                $stmt = $pdo->query($query);
+                                error_log("تم تنفيذ استعلام المشرف");
                             } else {
-                                $stmt = $pdo->prepare("
-                                    SELECT u.*, un.name as university_name,
-                                           COALESCE(creator.full_name, 'غير معروف') as created_by_name,
-                                           COALESCE(updater.full_name, 'غير معروف') as updated_by_name,
-                                           COALESCE(users.full_name, 'غير معين') as unit_manager_name,
-                                           u.user_id
-                                    FROM units u 
-                                    INNER JOIN universities un ON u.university_id = un.id 
-                                    INNER JOIN university_divisions ud ON un.id = ud.university_id
-                                    INNER JOIN user_entities ue ON ud.id = ue.entity_id
-                                    LEFT JOIN users creator ON u.created_by = creator.id
-                                    LEFT JOIN users updater ON u.updated_by = updater.id
-                                    LEFT JOIN users ON u.user_id = users.id
-                                    WHERE ue.user_id = ? 
-                                    AND ue.entity_type = 'division'
-                                    AND ue.is_primary = 1
-                                    ORDER BY u.id DESC
-                                ");
+                                // جلب معلومات المستخدم
+                                $userQuery = "
+                                    SELECT 
+                                        u.id,
+                                        u.username,
+                                        u.college_id,
+                                        u.role_id,
+                                        r.name as role_name,
+                                        c.name as college_name
+                                    FROM users u
+                                    LEFT JOIN roles r ON u.role_id = r.id
+                                    LEFT JOIN colleges c ON u.college_id = c.id
+                                    WHERE u.id = ?
+                                ";
+                                $userStmt = $pdo->prepare($userQuery);
+                                $userStmt->execute([$_SESSION['user_id']]);
+                                $userInfo = $userStmt->fetch(PDO::FETCH_ASSOC);
                                 
-                                if (!$stmt) {
-                                    throw new PDOException("فشل في تحضير الاستعلام");
+                                error_log("معلومات المستخدم: " . print_r($userInfo, true));
+
+                                // التحقق من صلاحيات المستخدم
+                                $hasAccess = false;
+                                
+                                // المشرف له صلاحية كاملة
+                                if ($userRole === 'admin') {
+                                    $hasAccess = true;
                                 }
-                                
-                                if (!$stmt->execute([$_SESSION['user_id']])) {
-                                    throw new PDOException("فشل في تنفيذ الاستعلام");
+                                // رئيس الوحدة أو موظف الوحدة يمكنه رؤية وحدات كليته
+                                elseif (($userRole === 'unit_head' || $userRole === 'unit_employee') && $userInfo['college_id']) {
+                                    $hasAccess = true;
+                                }
+                                // مستخدم له صلاحية عرض الوحدات
+                                elseif (hasPermission('view_units')) {
+                                    $hasAccess = true;
+                                }
+
+                                if ($hasAccess) {
+                                    $query = "
+                                        SELECT 
+                                            u.*,
+                                            c.name as college_name,
+                                            COALESCE(us.full_name, 'غير معين') as unit_manager_name,
+                                            cr.full_name as created_by_name
+                                        FROM units u 
+                                        LEFT JOIN colleges c ON u.college_id = c.id
+                                        LEFT JOIN users us ON u.user_id = us.id
+                                        LEFT JOIN users cr ON u.created_by = cr.id
+                                        WHERE 1=1
+                                    ";
+                                    
+                                    $params = [];
+                                    
+                                    // إذا كان المستخدم ليس مشرفاً، نقيد الوصول لوحدات كليته فقط
+                                    if ($userRole !== 'admin' && $userInfo['college_id']) {
+                                        $query .= " AND u.college_id = ?";
+                                        $params[] = $userInfo['college_id'];
+                                    }
+                                    
+                                    $query .= " ORDER BY u.created_at DESC";
+                                    
+                                    $stmt = $pdo->prepare($query);
+                                    $stmt->execute($params);
+                                    error_log("تم تنفيذ استعلام المستخدم للكلية: " . ($userInfo['college_id'] ?? 'غير محدد'));
+                                } else {
+                                    throw new Exception("ليس لديك الصلاحيات الكافية لعرض الوحدات");
                                 }
                             }
 
                             $units = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                            
-                            if ($units === false) {
-                                throw new PDOException("فشل في جلب البيانات");
-                            }
-                            
+                            error_log("عدد الوحدات التي تم جلبها: " . count($units));
+
                             if (empty($units)) {
-                                echo "<tr><td colspan='7' class='text-center'>لا توجد وحدات لعرضها</td></tr>";
+                                echo "<tr><td colspan='8' class='text-center'>لا توجد وحدات لعرضها</td></tr>";
                             } else {
                                 foreach ($units as $row) {
+                                    $statusClass = $row['is_active'] ? 'success' : 'danger';
+                                    $statusText = $row['is_active'] ? 'نشط' : 'غير نشط';
+                                    
                                     echo "<tr data-unit-id='{$row['id']}'>
                                             <td>{$row['id']}</td>
                                             <td class='unit-name'>" . htmlspecialchars($row['name']) . "</td>
-                                            <td>" . htmlspecialchars($row['university_name']) . "</td>
+                                            <td>" . htmlspecialchars($row['college_name']) . "</td>
                                             <td class='unit-description'>" . htmlspecialchars($row['description'] ?? '') . "</td>
                                             <td class='unit-manager'>" . htmlspecialchars($row['unit_manager_name']) . "</td>
+                                            <td><span class='badge bg-{$statusClass}'>{$statusText}</span></td>
                                             <td>" . date('Y-m-d H:i', strtotime($row['created_at'])) . "</td>
                                             <td class='text-nowrap'>";
                                     
-                                    if ($userRole === 'admin' || 
-                                        ($userEntityType === 'division' && hasPermission('edit_unit'))) {
+                                    if ($userRole === 'admin' || hasPermission('edit_unit')) {
                                         echo "<button onclick='editUnit({$row['id']})' class='btn btn-sm btn-outline-primary me-1 rounded-pill'>
                                                 <i class='fas fa-edit'></i>
                                               </button>";
                                     }
                                     
-                                    if ($userRole === 'admin' || 
-                                        ($userEntityType === 'division' && hasPermission('delete_unit'))) {
+                                    if ($userRole === 'admin' || hasPermission('delete_unit')) {
                                         echo "<button onclick='deleteUnit({$row['id']}, `" . htmlspecialchars($row['name'], ENT_QUOTES) . "`)' 
                                               class='btn btn-sm btn-outline-danger rounded-pill'>
                                                 <i class='fas fa-trash'></i>
@@ -314,14 +490,12 @@ include 'header.php';
                                     echo "</td></tr>";
                                 }
                             }
-                        } catch (PDOException $e) {
-                            error_log("خطأ في عرض الوحدات: " . $e->getMessage() . "\nSQL State: " . $e->getCode() . "\nTrace: " . $e->getTraceAsString());
-                            echo "<tr><td colspan='7' class='text-danger'>
+                        } catch (Exception $e) {
+                            error_log("خطأ في عرض الوحدات: " . $e->getMessage());
+                            echo "<tr><td colspan='8' class='text-center'>
                                     <div class='alert alert-danger'>
                                         <i class='fas fa-exclamation-triangle me-2'></i>
-                                        حدث خطأ في عرض البيانات. الرجاء المحاولة مرة أخرى لاحقاً.
-                                        <br>
-                                        <small class='text-muted'>(" . htmlspecialchars($e->getMessage()) . ")</small>
+                                        " . htmlspecialchars($e->getMessage()) . "
                                     </div>
                                 </td></tr>";
                         }
@@ -359,65 +533,47 @@ include 'header.php';
             <div class="modal-body">
                 <form id="addUnitForm" method="POST" action="process_unit.php" class="needs-validation" novalidate>
                     <input type="hidden" name="action" value="add">
+                    
                     <div class="mb-3">
                         <label class="form-label">اسم الوحدة</label>
                         <input type="text" name="name" class="form-control" required>
                         <div class="invalid-feedback">يرجى إدخال اسم الوحدة</div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">الجامعة</label>
-                        <select name="university_id" id="university_select" class="form-select" required>
-                            <option value="">اختر الجامعة</option>
-                            <?php
-                            $universities = $pdo->query("SELECT * FROM universities ORDER BY name")->fetchAll();
-                            foreach ($universities as $univ) {
-                                echo "<option value='{$univ['id']}'>{$univ['name']}</option>";
-                            }
-                            ?>
-                        </select>
-                        <div class="invalid-feedback">يرجى اختيار الجامعة</div>
-                    </div>
+
                     <div class="mb-3">
                         <label class="form-label">الكلية</label>
                         <select name="college_id" id="college_select" class="form-select" required>
                             <option value="">اختر الكلية</option>
+                            <?php foreach ($colleges as $college): ?>
+                            <option value="<?php echo $college['id']; ?>">
+                                <?php echo htmlspecialchars($college['name']); ?>
+                            </option>
+                            <?php endforeach; ?>
                         </select>
                         <div class="invalid-feedback">يرجى اختيار الكلية</div>
                     </div>
+
                     <div class="mb-3">
-                        <label class="form-label">الشعبة</label>
-                        <select name="division_id" id="division_select" class="form-select" required>
-                            <option value="">اختر الشعبة</option>
-                        </select>
-                        <div class="invalid-feedback">يرجى اختيار الشعبة</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">مدير الوحدة</label>
+                        <label class="form-label">رئيس الوحدة</label>
                         <select name="user_id" id="unit_manager_select" class="form-select" required>
-                            <option value="">اختر مدير الوحدة</option>
-                            <?php
-                            try {
-                                $users_stmt = $pdo->query("
-                                    SELECT id, full_name 
-                                    FROM users 
-                                    WHERE is_active = 1 
-                                    ORDER BY full_name
-                                ");
-                                $users = $users_stmt->fetchAll();
-                                foreach ($users as $user) {
-                                    echo "<option value='{$user['id']}'>{$user['full_name']}</option>";
-                                }
-                            } catch (PDOException $e) {
-                                error_log("خطأ في جلب المستخدمين: " . $e->getMessage());
-                            }
-                            ?>
+                            <option value="">اختر رئيس الوحدة</option>
                         </select>
-                        <div class="invalid-feedback">يرجى اختيار مدير الوحدة</div>
+                        <div class="invalid-feedback">يرجى اختيار رئيس الوحدة</div>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">الوصف</label>
                         <textarea name="description" class="form-control" rows="3"></textarea>
                     </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">حالة الوحدة</label>
+                        <select name="is_active" class="form-select">
+                            <option value="1">نشط</option>
+                            <option value="0">غير نشط</option>
+                        </select>
+                    </div>
+
                     <div class="d-flex justify-content-between">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save me-2"></i>حفظ
@@ -457,6 +613,8 @@ document.addEventListener('DOMContentLoaded', function() {
             card.style.transform = 'translateY(0)';
         }, index * 200);
     });
+
+    updateStats();
 });
 
 // دالة التعديل
@@ -482,19 +640,6 @@ async function editUnit(unitId) {
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">الجامعة</label>
-                    <select name="university_id" id="modal_university_select" class="form-select" required>
-                        <option value="">اختر الجامعة</option>
-                        ${data.universities.map(univ => `
-                            <option value="${univ.id}" ${univ.id == data.university_id ? 'selected' : ''}>
-                                ${univ.name}
-                            </option>
-                        `).join('')}
-                    </select>
-                    <div class="invalid-feedback">يرجى اختيار الجامعة</div>
-                </div>
-
-                <div class="mb-3">
                     <label class="form-label">الكلية</label>
                     <select name="college_id" id="modal_college_select" class="form-select" required>
                         <option value="">اختر الكلية</option>
@@ -505,19 +650,6 @@ async function editUnit(unitId) {
                         `).join('')}
                     </select>
                     <div class="invalid-feedback">يرجى اختيار الكلية</div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">الشعبة</label>
-                    <select name="division_id" id="modal_division_select" class="form-select" required>
-                        <option value="">اختر الشعبة</option>
-                        ${data.divisions.map(division => `
-                            <option value="${division.id}" ${division.id == data.division_id ? 'selected' : ''}>
-                                ${division.name}
-                            </option>
-                        `).join('')}
-                    </select>
-                    <div class="invalid-feedback">يرجى اختيار الشعبة</div>
                 </div>
 
                 <div class="mb-3">
@@ -559,13 +691,12 @@ async function editUnit(unitId) {
 
         // تحميل مدراء الوحدات المتاحين عند فتح المودال
         const loadUnitManagers = async () => {
-            const universityId = document.getElementById('modal_university_select').value;
             const collegeId = document.getElementById('modal_college_select').value;
             const managerSelect = document.getElementById('modal_unit_manager_select');
             
-            if (universityId && collegeId) {
+            if (collegeId) {
                 try {
-                    const response = await fetch(`get_unit_users.php?university_id=${universityId}&college_id=${collegeId}`);
+                    const response = await fetch(`get_unit_users.php?college_id=${collegeId}`);
                     const users = await response.json();
                     
                     managerSelect.innerHTML = '<option value="">اختر مدير الوحدة</option>';
@@ -595,45 +726,6 @@ async function editUnit(unitId) {
 
         // إضافة مستمع حدث لتغيير الكلية في نموذج التعديل
         document.getElementById('modal_college_select').addEventListener('change', loadUnitManagers);
-
-        // إضافة مستمع حدث لتغيير الجامعة في نموذج التعديل
-        document.getElementById('modal_university_select').addEventListener('change', async function() {
-            const universityId = this.value;
-            const collegeSelect = document.getElementById('modal_college_select');
-            const divisionSelect = document.getElementById('modal_division_select');
-            const managerSelect = document.getElementById('modal_unit_manager_select');
-            
-            // تفريغ القوائم
-            collegeSelect.innerHTML = '<option value="">اختر الكلية</option>';
-            divisionSelect.innerHTML = '<option value="">اختر الشعبة</option>';
-            managerSelect.innerHTML = '<option value="">اختر مدير الوحدة</option>';
-            
-            if (universityId) {
-                try {
-                    // جلب الكليات
-                    const collegesResponse = await fetch(`get_available_colleges.php?university_id=${universityId}`);
-                    const colleges = await collegesResponse.json();
-                    colleges.forEach(college => {
-                        const option = document.createElement('option');
-                        option.value = college.id;
-                        option.textContent = college.name;
-                        collegeSelect.appendChild(option);
-                    });
-
-                    // جلب الشعب
-                    const divisionsResponse = await fetch(`get_divisions.php?university_id=${universityId}`);
-                    const divisions = await divisionsResponse.json();
-                    divisions.forEach(division => {
-                        const option = document.createElement('option');
-                        option.value = division.id;
-                        option.textContent = division.name;
-                        divisionSelect.appendChild(option);
-                    });
-                } catch (error) {
-                    console.error('Error:', error);
-                }
-            }
-        });
 
         // تفعيل الأحداث للنموذج
         const form = document.getElementById('editUnitForm');
@@ -807,38 +899,34 @@ function showSuccessAnimation() {
 }
 
 // تفعيل التحديث التلقائي للقوائم المنسدلة في نموذج الإضافة
-document.getElementById('university_select').addEventListener('change', async function() {
-    const universityId = this.value;
-    const collegeSelect = document.getElementById('college_select');
-    const divisionSelect = document.getElementById('division_select');
+document.getElementById('college_select').addEventListener('change', async function() {
+    const collegeId = this.value;
+    const managerSelect = document.getElementById('unit_manager_select');
     
-    // تفريغ القوائم
-    collegeSelect.innerHTML = '<option value="">اختر الكلية</option>';
-    divisionSelect.innerHTML = '<option value="">اختر الشعبة</option>';
+    // تفريغ القائمة
+    managerSelect.innerHTML = '<option value="">اختر رئيس الوحدة</option>';
     
-    if (universityId) {
+    if (collegeId) {
         try {
-            // جلب الكليات
-            const collegesResponse = await fetch(`get_available_colleges.php?university_id=${universityId}`);
-            const colleges = await collegesResponse.json();
-            colleges.forEach(college => {
-                const option = document.createElement('option');
-                option.value = college.id;
-                option.textContent = college.name;
-                collegeSelect.appendChild(option);
-            });
-
-            // جلب الشعب
-            const divisionsResponse = await fetch(`get_divisions.php?university_id=${universityId}`);
-            const divisions = await divisionsResponse.json();
-            divisions.forEach(division => {
-                const option = document.createElement('option');
-                option.value = division.id;
-                option.textContent = division.name;
-                divisionSelect.appendChild(option);
-            });
+            // جلب المستخدمين حسب الكلية
+            const response = await fetch(`get_unit_users.php?college_id=${collegeId}`);
+            const result = await response.json();
+            
+            console.log('API Response:', result); // للتحقق من البيانات المسترجعة
+            
+            if (!result.success || !result.data || result.data.length === 0) {
+                managerSelect.innerHTML += '<option value="" disabled>لا يوجد رؤساء وحدات متاحين في هذه الكلية</option>';
+            } else {
+                result.data.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.id;
+                    option.textContent = user.full_name;
+                    managerSelect.appendChild(option);
+                });
+            }
         } catch (error) {
             console.error('Error:', error);
+            managerSelect.innerHTML = '<option value="">حدث خطأ في جلب البيانات</option>';
         }
     }
 });
@@ -943,42 +1031,100 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
             row.style.display = 'none';
         }
     }
+
+    updateStats();
 });
 
-// تحديث معالج تغيير الكلية لجلب مديري الوحدات
-document.getElementById('college_select').addEventListener('change', async function() {
-    const universityId = document.getElementById('university_select').value;
-    const collegeId = this.value;
-    const managerSelect = document.getElementById('unit_manager_select');
+// دالة تحديث الإحصائيات
+function updateStats() {
+    const table = document.getElementById('unitsTable');
+    if (!table) return;
     
-    // تفريغ القائمة
-    managerSelect.innerHTML = '<option value="">اختر مدير الوحدة</option>';
+    const tbody = table.getElementsByTagName('tbody')[0];
+    if (!tbody) return;
     
-    if (collegeId && universityId) {
-        try {
-            // جلب المستخدمين حسب الجامعة والكلية
-            const response = await fetch(`get_unit_users.php?university_id=${universityId}&college_id=${collegeId}`);
-            const users = await response.json();
+    const rows = tbody.getElementsByTagName('tr');
+    let totalUnits = 0;
+    let activeUnits = 0;
+    let recentlyAdded = 0;
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // حساب الإحصائيات
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        if (row.style.display !== 'none') {
+            totalUnits++;
             
-            if (users.length === 0) {
-                managerSelect.innerHTML += '<option value="" disabled>لا يوجد مستخدمين متاحين</option>';
-            } else {
-                users.forEach(user => {
-                    const option = document.createElement('option');
-                    option.value = user.id;
-                    option.textContent = user.full_name;
-                    managerSelect.appendChild(option);
-                });
+            // التحقق من حالة الوحدة
+            const statusBadge = row.querySelector('.badge');
+            if (statusBadge && statusBadge.classList.contains('bg-success')) {
+                activeUnits++;
             }
-        } catch (error) {
-            console.error('Error:', error);
-            managerSelect.innerHTML = '<option value="">حدث خطأ في جلب البيانات</option>';
+
+            // التحقق من تاريخ الإضافة
+            const dateCell = row.cells[6]; // عمود التاريخ
+            if (dateCell && dateCell.textContent) {
+                const rowDate = new Date(dateCell.textContent);
+                if (rowDate >= thirtyDaysAgo) {
+                    recentlyAdded++;
+                }
+            }
         }
     }
-});
 
-// إزالة الأحداث غير الضرورية
-document.getElementById('college_select').removeEventListener('change', loadUnitManagers);
+    // تحديث العناصر في الواجهة
+    const totalElement = document.getElementById('totalUnits');
+    const activeElement = document.getElementById('activeUnits');
+    const recentElement = document.getElementById('recentlyAdded');
+
+    if (totalElement) totalElement.textContent = totalUnits;
+    if (activeElement) activeElement.textContent = activeUnits;
+    if (recentElement) recentElement.textContent = recentlyAdded;
+}
+
+// دالة ترتيب الجدول
+function sortTable(sortType) {
+    const table = document.getElementById('unitsTable');
+    const tbody = table.getElementsByTagName('tbody')[0];
+    const rows = Array.from(tbody.getElementsByTagName('tr'));
+    
+    rows.sort((a, b) => {
+        let aValue, bValue;
+        
+        switch(sortType) {
+            case 'name_asc':
+                aValue = a.querySelector('.unit-name').textContent;
+                bValue = b.querySelector('.unit-name').textContent;
+                return aValue.localeCompare(bValue, 'ar');
+                
+            case 'name_desc':
+                aValue = a.querySelector('.unit-name').textContent;
+                bValue = b.querySelector('.unit-name').textContent;
+                return bValue.localeCompare(aValue, 'ar');
+                
+            case 'date_asc':
+                aValue = new Date(a.cells[5].textContent);
+                bValue = new Date(b.cells[5].textContent);
+                return aValue - bValue;
+                
+            case 'date_desc':
+                aValue = new Date(a.cells[5].textContent);
+                bValue = new Date(b.cells[5].textContent);
+                return bValue - aValue;
+        }
+    });
+    
+    rows.forEach(row => {
+        tbody.appendChild(row);
+        row.style.animation = 'fadeIn 0.5s';
+    });
+}
+
+// تفعيل خيارات الترتيب
+document.getElementById('sortFilter').addEventListener('change', function() {
+    sortTable(this.value);
+});
 </script>
 
 <?php include 'footer.php'; ?>

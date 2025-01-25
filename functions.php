@@ -38,10 +38,33 @@ function addDivision($name, $universityId) {
 }
 
 // دالة إضافة وحدة جديدة
-function addUnit($name, $collegeId, $divisionId) {
-  global $pdo;
-  $stmt = $pdo->prepare("INSERT INTO units (name, college_id, division_id) VALUES (?, ?, ?)");
-  return $stmt->execute([$name, $collegeId, $divisionId]);
+function addUnit($name, $collegeId, $userId, $description = '', $isActive = 1) {
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare("
+            INSERT INTO units (
+                name, 
+                college_id, 
+                user_id, 
+                description, 
+                is_active, 
+                created_at, 
+                created_by
+            ) VALUES (?, ?, ?, ?, ?, NOW(), ?)
+        ");
+        
+        return $stmt->execute([
+            $name,
+            $collegeId,
+            $userId,
+            $description,
+            $isActive,
+            $_SESSION['user_id']
+        ]);
+    } catch (PDOException $e) {
+        error_log("خطأ في إضافة الوحدة: " . $e->getMessage());
+        return false;
+    }
 }
 
 // دالة إضافة كتاب جديد
