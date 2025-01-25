@@ -5,52 +5,55 @@ requireLogin();
 
 header('Content-Type: application/json');
 
+if (!isset($_GET['college_id']) || !is_numeric($_GET['college_id'])) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'معرف الكلية غير صحيح'
+    ]);
+    exit;
+}
+
+$collegeId = (int)$_GET['college_id'];
+
 try {
-    if (!isset($_GET['college_id'])) {
-        throw new Exception('معرف الكلية مطلوب');
-    }
-
-    $collegeId = (int)$_GET['college_id'];
-
-    // جلب المستخدمين الذين لديهم دور رئيس وحدة (role_id = 2) في نفس الكلية
+    // جلب المستخدمين المتاحين كرؤساء وحدات
+    // استثناء المستخدمين الذين تم تعيينهم بالفعل كرؤساء وحدات
     $stmt = $pdo->prepare("
-        SELECT DISTINCT u.id, u.username, u.full_name
+        SELECT DISTINCT
+            u.id,
+            u.full_name
         FROM users u
-        WHERE u.college_id = ?
-        AND u.role_id = 2
+        WHERE u.role_id = 2 
+        AND u.college_id = ?
+        AND u.id NOT IN (
+            SELECT user_id 
+            FROM units 
+            WHERE user_id IS NOT NULL
+            AND college_id = ?
+        )
         ORDER BY u.full_name
     ");
     
-    $stmt->execute([$collegeId]);
+    $stmt->execute([$collegeId, $collegeId]);
     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // طباعة البيانات للتحقق
-    error_log("College ID: " . $collegeId);
-    error_log("Number of users found: " . count($users));
-    foreach ($users as $user) {
-        error_log("User ID: " . $user['id'] . ", Name: " . $user['full_name']);
-    }
     
     if (empty($users)) {
         echo json_encode([
-            'success' => false,
-            'data' => [],
-            'message' => 'لا يوجد رؤساء وحدات متاحين في هذه الكلية'
+            'success' => true,
+            'message' => 'لا يوجد رؤساء وحدات متاحين في هذه الكلية',
+            'data' => []
         ]);
-        exit;
+    } else {
+        echo json_encode([
+            'success' => true,
+            'data' => $users
+        ]);
     }
-    
-    echo json_encode([
-        'success' => true,
-        'data' => $users
-    ]);
 
-} catch (Exception $e) {
-    error_log("خطأ في جلب رؤساء الوحدات: " . $e->getMessage());
-    http_response_code(400);
+} catch (PDOException $e) {
+    error_log("خطأ في جلب بيانات المستخدمين: " . $e->getMessage());
     echo json_encode([
         'success' => false,
-        'message' => $e->getMessage(),
-        'data' => []
+        'message' => 'حدث خطأ أثناء جلب البيانات'
     ]);
 } 

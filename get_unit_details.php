@@ -34,6 +34,8 @@ try {
         exit;
     }
 
+    error_log("تم جلب بيانات الوحدة: " . print_r($unit, true));
+
     // جلب قائمة الكليات
     $stmt = $pdo->prepare("
         SELECT id, name 
@@ -43,17 +45,22 @@ try {
     $stmt->execute();
     $colleges = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // جلب قائمة المستخدمين المتاحين كمدراء للوحدة
+    error_log("تم جلب الكليات: " . print_r($colleges, true));
+
+    // جلب قائمة المستخدمين المتاحين كرؤساء للوحدة
     $stmt = $pdo->prepare("
         SELECT 
             u.id,
             u.full_name
         FROM users u
         WHERE u.role_id = 2
+        AND (u.college_id = ? OR u.id = ?)
         ORDER BY u.full_name
     ");
-    $stmt->execute();
+    $stmt->execute([$unit['college_id'], $unit['user_id']]);
     $managers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    error_log("تم جلب رؤساء الوحدات: " . print_r($managers, true));
 
     // تجهيز البيانات للإرجاع
     $response = [
@@ -70,10 +77,13 @@ try {
         'manager_name' => $unit['manager_name']
     ];
 
+    error_log("البيانات النهائية: " . print_r($response, true));
+
     echo json_encode($response);
 
 } catch (PDOException $e) {
     error_log("خطأ في جلب بيانات الوحدة: " . $e->getMessage());
+    error_log("تتبع الخطأ: " . $e->getTraceAsString());
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'حدث خطأ أثناء جلب البيانات']);
 } 

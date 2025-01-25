@@ -97,9 +97,21 @@ try {
     error_log("خطأ في جلب نوع الكيان للمستخدم: " . $e->getMessage());
 }
 
-// تحميل الكليات المتاحة
-$collegesQuery = $pdo->query("SELECT id, name FROM colleges ORDER BY name");
-$colleges = $collegesQuery->fetchAll(PDO::FETCH_ASSOC);
+// جلب قائمة الكليات التي لم يتم إنشاء وحدات لها
+$stmt = $pdo->prepare("
+    SELECT DISTINCT 
+        c.id, 
+        c.name 
+    FROM colleges c
+    WHERE c.id NOT IN (
+        SELECT DISTINCT college_id 
+        FROM units 
+        WHERE college_id IS NOT NULL
+    )
+    ORDER BY c.name
+");
+$stmt->execute();
+$colleges = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 include 'header.php';
 ?>
