@@ -5,6 +5,13 @@ requireLogin();
 
 header('Content-Type: application/json');
 
+// التحقق من صلاحيات المستخدم
+if (!hasPermission('view_colleges')) {
+    http_response_code(403);
+    echo json_encode(['error' => 'ليس لديك صلاحية لعرض الكليات']);
+    exit;
+}
+
 if (!isset($_GET['university_id'])) {
     http_response_code(400);
     echo json_encode(['error' => 'معرف الجامعة مطلوب']);
@@ -14,12 +21,18 @@ if (!isset($_GET['university_id'])) {
 $universityId = $_GET['university_id'];
 
 try {
-    // جلب كليات الجامعة المحددة
+    // جلب كليات الجامعة المحددة مع معلومات إضافية
     $stmt = $pdo->prepare("
-        SELECT id, name 
-        FROM colleges 
-        WHERE university_id = :university_id 
-        ORDER BY name
+        SELECT 
+            c.id,
+            c.name,
+            c.created_at,
+            c.updated_at,
+            c.created_by,
+            c.updated_by
+        FROM colleges c
+        WHERE c.university_id = :university_id 
+        ORDER BY c.name
     ");
     
     $stmt->execute(['university_id' => $universityId]);

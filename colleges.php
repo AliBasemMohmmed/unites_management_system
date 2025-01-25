@@ -29,27 +29,52 @@ if (!($userRole === 'admin' || $permission['has_permission'] > 0)) {
     die('غير مصرح لك بالوصول إلى هذه الصفحة. الرجاء التواصل مع مدير النظام.');
 }
 
-// التحقق من وجود الجدول وتحديثه
+// التحقق من صلاحية إضافة كلية جديدة
+$canAddCollege = $userRole === 'admin' || hasPermission('add_college');
+
+// التحقق من وجود جدول الكليات وإنشائه إذا لم يكن موجوداً
 try {
-    // إضافة الأعمدة الجديدة
+    // إنشاء جدول الكليات إذا لم يكن موجوداً
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS colleges (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            name VARCHAR(255) NOT NULL UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_by INT,
+            updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
+            updated_by INT,
+            CONSTRAINT fk_colleges_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+            CONSTRAINT fk_colleges_updated_by FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+
+    // إضافة الأعمدة الجديدة إذا لم تكن موجودة
     $alterQueries = [
         "ALTER TABLE colleges ADD COLUMN IF NOT EXISTS created_by INT AFTER created_at",
         "ALTER TABLE colleges ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP AFTER created_at",
         "ALTER TABLE colleges ADD COLUMN IF NOT EXISTS updated_by INT AFTER updated_at",
-        "ALTER TABLE colleges ADD CONSTRAINT IF NOT EXISTS fk_colleges_created_by FOREIGN KEY (created_by) REFERENCES users(id)",
-        "ALTER TABLE colleges ADD CONSTRAINT IF NOT EXISTS fk_colleges_updated_by FOREIGN KEY (updated_by) REFERENCES users(id)"
+        "ALTER TABLE colleges ADD CONSTRAINT IF NOT EXISTS fk_colleges_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL",
+        "ALTER TABLE colleges ADD CONSTRAINT IF NOT EXISTS fk_colleges_updated_by FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL"
     ];
 
     foreach ($alterQueries as $query) {
         try {
             $pdo->exec($query);
         } catch (PDOException $e) {
-            error_log("خطأ في تنفيذ استعلام التعديل: " . $query . " - " . $e->getMessage());
+            // تجاهل الأخطاء إذا كان العمود أو القيد موجوداً بالفعل
             continue;
         }
     }
 } catch (PDOException $e) {
-    error_log("خطأ في تحديث جدول الكليات: " . $e->getMessage());
+    error_log("خطأ في إنشاء/تحديث جدول الكليات: " . $e->getMessage());
+    die("
+        <div class='alert alert-danger'>
+            <h4 class='alert-heading'>خطأ في قاعدة البيانات</h4>
+            <p>حدث خطأ أثناء إعداد جدول الكليات. الرجاء الاتصال بمسؤول النظام.</p>
+            <hr>
+            <p class='mb-0'><small>تفاصيل الخطأ: " . htmlspecialchars($e->getMessage()) . "</small></p>
+        </div>
+    ");
 }
 
 // التحقق من الانتماء الرئيسي للمستخدم
@@ -91,6 +116,8 @@ include 'header.php';
     .card {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         animation: slideIn 0.5s ease-out;
+        border-radius: 15px;
+        overflow: hidden;
     }
     
     .card:hover {
@@ -120,7 +147,33 @@ include 'header.php';
         position: relative;
         background-color: rgba(0,123,255,0.05);
     }
+
+    .table th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+    }
     
+    .search-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .search-box input {
+        padding-right: 30px;
+        border-radius: 20px;
+        border: 1px solid #ddd;
+        transition: all 0.3s ease;
+    }
+
+    .search-box input:focus {
+        box-shadow: 0 0 10px rgba(0,123,255,0.2);
+        border-color: #80bdff;
+        width: 300px;
+    }
+
     @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
@@ -143,32 +196,66 @@ include 'header.php';
         to { transform: scale(1); opacity: 1; }
     }
 
-    .search-box {
-        position: relative;
+    .filter-dropdown {
+        min-width: 150px;
     }
 
-    .search-box input {
-        padding-right: 30px;
-        border-radius: 20px;
-        border: 1px solid #ddd;
+    .stats-container {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        flex: 1;
+        padding: 15px;
+        border-radius: 10px;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        text-align: center;
         transition: all 0.3s ease;
     }
 
-    .search-box input:focus {
-        box-shadow: 0 0 10px rgba(0,123,255,0.2);
-        border-color: #80bdff;
-        width: 300px;
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .stat-number {
+        font-size: 24px;
+        font-weight: bold;
+        color: #007bff;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-size: 14px;
     }
 </style>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="bounce-in">إدارة كليات جامعة الأنبار</h2>
-        <?php if ($userRole === 'admin' || ($userEntityType === 'division' && hasPermission('add_college'))): ?>
+        <?php if ($canAddCollege): ?>
         <button type="button" class="btn btn-primary rounded-pill" onclick="showAddCollegeModal()">
             <i class="fas fa-plus-circle me-2"></i>إضافة كلية جديدة
         </button>
         <?php endif; ?>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-number" id="totalColleges">0</div>
+            <div class="stat-label">إجمالي الكليات</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="activeColleges">0</div>
+            <div class="stat-label">الكليات النشطة</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="recentlyAdded">0</div>
+            <div class="stat-label">أضيفت حديثاً</div>
+        </div>
     </div>
 
     <?php if (isset($_SESSION['success'])): ?>
@@ -188,6 +275,12 @@ include 'header.php';
             <div class="d-flex justify-content-between align-items-center">
                 <span>الكليات الحالية</span>
                 <div class="search-box">
+                    <select class="form-select form-select-sm filter-dropdown" id="sortFilter">
+                        <option value="name_asc">الاسم (تصاعدي)</option>
+                        <option value="name_desc">الاسم (تنازلي)</option>
+                        <option value="date_asc">التاريخ (الأقدم)</option>
+                        <option value="date_desc" selected>التاريخ (الأحدث)</option>
+                    </select>
                     <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="بحث..." style="width: 250px;">
                 </div>
             </div>
@@ -209,53 +302,83 @@ include 'header.php';
                         try {
                             if ($userRole === 'admin') {
                                 $stmt = $pdo->query("
-                                    SELECT c.*, 
-                                           COALESCE(creator.full_name, 'غير معروف') as created_by_name,
-                                           COALESCE(updater.full_name, 'غير معروف') as updated_by_name
-                                    FROM colleges c 
-                                    LEFT JOIN users creator ON c.created_by = creator.id
-                                    LEFT JOIN users updater ON c.updated_by = updater.id
-                                    ORDER BY c.id DESC
+                                    SELECT 
+                                        c.id,
+                                        c.name,
+                                        c.created_at,
+                                        c.updated_at,
+                                        c.created_by,
+                                        c.updated_by,
+                                        u.full_name as created_by_name
+                                    FROM colleges c
+                                    LEFT JOIN users u ON c.created_by = u.id
+                                    ORDER BY c.name
                                 ");
                             } else {
                                 $stmt = $pdo->prepare("
-                                    SELECT c.*, 
-                                           COALESCE(creator.full_name, 'غير معروف') as created_by_name,
-                                           COALESCE(updater.full_name, 'غير معروف') as updated_by_name
-                                    FROM colleges c 
-                                    INNER JOIN user_entities ue ON ue.user_id = ?
-                                    LEFT JOIN users creator ON c.created_by = creator.id
-                                    LEFT JOIN users updater ON c.updated_by = updater.id
-                                    WHERE ue.entity_type = 'division'
-                                    AND ue.is_primary = 1
-                                    ORDER BY c.id DESC
+                                    SELECT 
+                                        c.id,
+                                        c.name,
+                                        c.created_at,
+                                        c.updated_at,
+                                        c.created_by,
+                                        c.updated_by,
+                                        u.full_name as created_by_name
+                                    FROM colleges c
+                                    LEFT JOIN users u ON c.created_by = u.id
+                                    ORDER BY c.name
                                 ");
-                                $stmt->execute([$_SESSION['user_id']]);
+                                $stmt->execute();
                             }
 
-                            while ($row = $stmt->fetch()) {
+                            $hasRecords = false;
+                            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                $hasRecords = true;
+                                $createdByName = $row['created_by_name'] ?: 'غير معروف';
                                 echo "<tr data-college-id='{$row['id']}'>
                                         <td>{$row['id']}</td>
-                                        <td class='college-name'>{$row['name']}</td>
+                                        <td class='college-name'>" . htmlspecialchars($row['name']) . "</td>
                                         <td>" . date('Y-m-d H:i', strtotime($row['created_at'])) . "</td>
-                                        <td>{$row['created_by_name']}</td>
+                                        <td>{$createdByName}</td>
                                         <td class='text-nowrap'>";
                                 
-                                if ($userRole === 'admin' || 
-                                    ($userEntityType === 'division' && hasPermission('edit_college'))) {
+                                if ($userRole === 'admin' || hasPermission('edit_college')) {
                                     echo "<button onclick='editCollege({$row['id']})' class='btn btn-sm btn-outline-primary me-1 rounded-pill'>
                                             <i class='fas fa-edit'></i>
                                           </button>";
+                                }
+                                
+                                if ($userRole === 'admin' || hasPermission('delete_college')) {
                                     echo "<button onclick='deleteCollege({$row['id']}, `" . htmlspecialchars($row['name'], ENT_QUOTES) . "`)' 
                                           class='btn btn-sm btn-outline-danger rounded-pill'>
                                             <i class='fas fa-trash'></i>
                                           </button>";
                                 }
+                                
                                 echo "</td></tr>";
                             }
+
+                            if (!$hasRecords) {
+                                echo "<tr><td colspan='5' class='text-center'>
+                                        <div class='alert alert-info mb-0'>
+                                            <i class='fas fa-info-circle me-2'></i>
+                                            لا توجد كليات مضافة حتى الآن
+                                        </div>
+                                      </td></tr>";
+                            }
+
                         } catch (PDOException $e) {
                             error_log("خطأ في عرض الكليات: " . $e->getMessage());
-                            echo "<tr><td colspan='5' class='text-danger'>حدث خطأ في عرض البيانات</td></tr>";
+                            echo "<tr><td colspan='5' class='text-center'>
+                                    <div class='alert alert-danger mb-0'>
+                                        <i class='fas fa-exclamation-triangle me-2'></i>
+                                        حدث خطأ في عرض البيانات
+                                        <details class='mt-2'>
+                                            <summary>تفاصيل الخطأ</summary>
+                                            <pre class='text-start mt-2'>" . htmlspecialchars($e->getMessage()) . "</pre>
+                                        </details>
+                                    </div>
+                                  </td></tr>";
                         }
                         ?>
                     </tbody>
@@ -313,6 +436,9 @@ include 'header.php';
 <script>
 // تفعيل التأثيرات الحركية للعناصر
 document.addEventListener('DOMContentLoaded', function() {
+    // تحديث الإحصائيات
+    updateStats();
+    
     const rows = document.querySelectorAll('tbody tr');
     rows.forEach((row, index) => {
         row.style.opacity = '0';
@@ -333,7 +459,78 @@ document.addEventListener('DOMContentLoaded', function() {
             card.style.transform = 'translateY(0)';
         }, index * 200);
     });
+
+    // تفعيل خيارات التصفية
+    document.getElementById('sortFilter').addEventListener('change', function() {
+        sortTable(this.value);
+    });
 });
+
+// دالة تحديث الإحصائيات
+function updateStats() {
+    const table = document.getElementById('collegesTable');
+    const rows = table.getElementsByTagName('tr');
+    const totalColleges = rows.length - 1; // نطرح 1 لاستبعاد صف العناوين
+    
+    // تحديث إجمالي الكليات
+    document.getElementById('totalColleges').textContent = totalColleges;
+    
+    // تحديث الكليات النشطة (نفترض أن جميع الكليات نشطة حالياً)
+    document.getElementById('activeColleges').textContent = totalColleges;
+    
+    // حساب الكليات المضافة حديثاً (خلال آخر 30 يوم)
+    let recentlyAdded = 0;
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    for (let i = 1; i < rows.length; i++) {
+        const dateCell = rows[i].cells[2].textContent;
+        const rowDate = new Date(dateCell);
+        if (rowDate >= thirtyDaysAgo) {
+            recentlyAdded++;
+        }
+    }
+    document.getElementById('recentlyAdded').textContent = recentlyAdded;
+}
+
+// دالة ترتيب الجدول
+function sortTable(sortType) {
+    const table = document.getElementById('collegesTable');
+    const tbody = table.getElementsByTagName('tbody')[0];
+    const rows = Array.from(tbody.getElementsByTagName('tr'));
+    
+    rows.sort((a, b) => {
+        let aValue, bValue;
+        
+        switch(sortType) {
+            case 'name_asc':
+                aValue = a.querySelector('.college-name').textContent;
+                bValue = b.querySelector('.college-name').textContent;
+                return aValue.localeCompare(bValue, 'ar');
+                
+            case 'name_desc':
+                aValue = a.querySelector('.college-name').textContent;
+                bValue = b.querySelector('.college-name').textContent;
+                return bValue.localeCompare(aValue, 'ar');
+                
+            case 'date_asc':
+                aValue = new Date(a.cells[2].textContent);
+                bValue = new Date(b.cells[2].textContent);
+                return aValue - bValue;
+                
+            case 'date_desc':
+                aValue = new Date(a.cells[2].textContent);
+                bValue = new Date(b.cells[2].textContent);
+                return bValue - aValue;
+        }
+    });
+    
+    // إعادة ترتيب الصفوف في الجدول
+    rows.forEach(row => {
+        tbody.appendChild(row);
+        row.style.animation = 'fadeIn 0.5s';
+    });
+}
 
 // دالة إظهار مودال إضافة كلية جديدة
 function showAddCollegeModal() {
@@ -553,6 +750,9 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
             row.style.display = 'none';
         }
     }
+    
+    // تحديث الإحصائيات بعد البحث
+    updateStats();
 });
 
 // معالجة نموذج الإضافة

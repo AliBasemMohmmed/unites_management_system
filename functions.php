@@ -543,33 +543,42 @@ function hasPermission($permission) {
     global $pdo;
     
     if (!isset($_SESSION['user_id'])) {
+        error_log("No user session found");
         return false;
     }
     
+    // طباعة معلومات التصحيح
+    error_log("Checking permission: " . $permission);
+    error_log("User ID: " . $_SESSION['user_id']);
+    error_log("User Role: " . ($_SESSION['user_role'] ?? 'Not set'));
+    error_log("Role ID: " . ($_SESSION['role_id'] ?? 'Not set'));
+    
     try {
-        $stmt = $pdo->prepare("
-            SELECT 
-                u.role_id,
-                r.name as role_name
-            FROM users u
-            JOIN roles r ON u.role_id = r.id
-            WHERE u.id = ?
-        ");
-        $stmt->execute([$_SESSION['user_id']]);
-        $userRole = $stmt->fetch(PDO::FETCH_ASSOC);
+        // إذا كان المستخدم مدير نظام
+        if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
+            error_log("User is admin, granting permission");
+            return true;
+        }
         
-        if (!$userRole) {
+        // التحقق من role_id
+        if (!isset($_SESSION['role_id'])) {
+            error_log("No role_id in session");
             return false;
         }
         
-        // إذا كان المستخدم مدير نظام
-        if ($userRole['role_name'] === 'admin') {
-            return true; // المدير لديه جميع الصلاحيات
-        }
+        // جلب الصلاحيات من جدول role_default_permissions
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*) as has_permission 
+            FROM role_default_permissions 
+            WHERE role_id = ? AND permission_name = ?
+        ");
         
-        // للأدوار الأخرى
-        $permissions = getUserRolePermissions($userRole['role_id']);
-        return in_array($permission, $permissions);
+        $stmt->execute([$_SESSION['role_id'], $permission]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        error_log("Permission check result: " . ($result['has_permission'] > 0 ? 'true' : 'false'));
+        
+        return $result['has_permission'] > 0;
         
     } catch (PDOException $e) {
         error_log("خطأ في التحقق من الصلاحيات: " . $e->getMessage());
